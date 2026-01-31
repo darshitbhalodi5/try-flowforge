@@ -201,9 +201,8 @@ export const SafeWalletProvider: React.FC<{ children: React.ReactNode }> = ({
                         if (!isEnabled) {
                             setEnableError("Module not verified on-chain");
                         }
-                    } catch (verifyError) {
-                        console.error("Failed to verify module:", verifyError);
-                        // Don't fail the flow, just log it
+                    } catch {
+                        // Failed to verify module
                     }
                 }
 
@@ -266,10 +265,7 @@ export const SafeWalletProvider: React.FC<{ children: React.ReactNode }> = ({
 
         // Defensive guard: prevent creation if user already has a Safe
         if (safeWallets.length > 0) {
-            console.warn(
-                { walletAddress, existingSafes: safeWallets },
-                "Attempted to create Safe when user already has one"
-            );
+            // Attempted to create Safe when user already has one
             setShowCreateFlow(true);
             setCreateStep("error");
             setCreateError("You already have a Safe wallet for this address");
