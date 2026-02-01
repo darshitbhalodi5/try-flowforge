@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" fill="none">
+  <!-- Horizontal branching icon for If/Else block -->
+  <!-- Central node -->
+  <circle cx="64" cy="64" r="16" fill="#FF6500"/>
+  
+  <!-- Left input line -->
+  <line x1="0" y1="64" x2="48" y2="64" stroke="#FF6500" stroke-width="6" stroke-linecap="round"/>
+  
+  <!-- Top branch (True path) -->
+  <line x1="64" y1="48" x2="64" y2="24" stroke="#FF6500" stroke-width="6" stroke-linecap="round"/>
+  <line x1="64" y1="24" x2="104" y2="24" stroke="#FF6500" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="120" cy="24" r="8" fill="#FF6500"/>
+  
+  <!-- Bottom branch (False path) -->
+  <line x1="64" y1="80" x2="64" y2="104" stroke="#FF6500" stroke-width="6" stroke-linecap="round"/>
+  <line x1="64" y1="104" x2="104" y2="104" stroke="#FF6500" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="120" cy="104" r="8" fill="#FF6500"/>
+</svg>
+

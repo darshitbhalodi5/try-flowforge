@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" fill="none">
+  <!-- Switch case icon - circle node with vertical fan pattern -->
+  <!-- Central switch node (circle) -->
+  <circle cx="48" cy="64" r="18" fill="#FF6500"/>
+  
+  <!-- Horizontal input line from left -->
+  <line x1="0" y1="64" x2="30" y2="64" stroke="#FF6500" stroke-width="6" stroke-linecap="round"/>
+  
+  <!-- Case 1 output (top) - vertical fan -->
+  <line x1="66" y1="46" x2="80" y2="20" stroke="#FF6500" stroke-width="6" stroke-linecap="round"/>
+  <line x1="80" y1="20" x2="104" y2="20" stroke="#FF6500" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="120" cy="20" r="8" fill="#FF6500"/>
+  
+  <!-- Case 2 output (upper-middle) -->
+  <line x1="66" y1="54" x2="88" y2="40" stroke="#FF6500" stroke-width="6" stroke-linecap="round"/>
+  <line x1="88" y1="40" x2="104" y2="40" stroke="#FF6500" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="120" cy="40" r="8" fill="#FF6500"/>
+  
+  <!-- Case 3 output (center) -->
+  <line x1="66" y1="64" x2="104" y2="64" stroke="#FF6500" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="120" cy="64" r="8" fill="#FF6500"/>
+  
+  <!-- Case 4 output (lower-middle) -->
+  <line x1="66" y1="74" x2="88" y2="88" stroke="#FF6500" stroke-width="6" stroke-linecap="round"/>
+  <line x1="88" y1="88" x2="104" y2="88" stroke="#FF6500" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="120" cy="88" r="8" fill="#FF6500"/>
+  
+  <!-- Case 5 / Default output (bottom) -->
+  <line x1="66" y1="82" x2="80" y2="108" stroke="#FF6500" stroke-width="6" stroke-linecap="round"/>
+  <line x1="80" y1="108" x2="104" y2="108" stroke="#FF6500" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="120" cy="108" r="8" fill="#FF6500"/>
+</svg>
