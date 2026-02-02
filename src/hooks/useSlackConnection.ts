@@ -199,7 +199,7 @@ export function useSlackConnection({
                 setConnections(data.data.connections || []);
             }
         } catch (error) {
-            console.error("Failed to load connections:", error);
+            // console.error("Failed to load connections:", error);
         } finally {
             setLoading(prev => ({ ...prev, connections: false }));
         }
@@ -228,7 +228,7 @@ export function useSlackConnection({
                 setChannels(data.data.channels || []);
             }
         } catch (error) {
-            console.error("Failed to load channels:", error);
+            // console.error("Failed to load channels:", error);
             showNotification("error", "Failed to load channels");
         } finally {
             setLoading(prev => ({ ...prev, channels: false }));
@@ -623,7 +623,7 @@ export function useSlackConnection({
                                 }
                             }
                         } catch (err) {
-                            console.error("Failed to load connections after OAuth:", err);
+                            // console.error("Failed to load connections after OAuth:", err);
                         }
                     }
 

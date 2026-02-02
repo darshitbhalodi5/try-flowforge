@@ -65,7 +65,7 @@ export function OracleNodeConfigurationV2({
                 setError("Failed to load available price feeds");
             }
         } catch (err) {
-            console.error("Error loading feeds:", err);
+            //console.error("Error loading feeds:", err);
             setError("Failed to load price feeds");
         } finally {
             setLoading(false);
@@ -126,7 +126,7 @@ export function OracleNodeConfigurationV2({
                 setError("Failed to fetch configuration for selected feed");
             }
         } catch (err) {
-            console.error("Error fetching config:", err);
+            //console.error("Error fetching config:", err);
             setError("Failed to fetch feed configuration");
         } finally {
             setFetchingConfig(false);

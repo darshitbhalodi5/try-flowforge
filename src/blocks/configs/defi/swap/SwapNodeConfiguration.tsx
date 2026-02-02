@@ -512,7 +512,7 @@ export function SwapNodeConfiguration({
 
         // Check if Safe wallet is selected - use Safe transaction flow
         if (selectedSafe && authenticated) {
-            console.log("Using Safe transaction flow for swap", { selectedSafe, authenticated });
+            //console.log("Using Safe transaction flow for swap", { selectedSafe, authenticated });
             setExecutionState({ loading: true, error: null, txHash: null, approvalTxHash: null, success: false, step: 'building-tx' });
 
             try {
@@ -542,7 +542,7 @@ export function SwapNodeConfiguration({
                 };
 
                 // Step 1: Build Safe transaction hash
-                console.log("Step 1: Building Safe transaction hash...");
+                //console.log("Step 1: Building Safe transaction hash...");
                 const buildUrl = `${buildApiUrl(API_CONFIG.ENDPOINTS.SWAP.BUILD_SAFE_TRANSACTION)}/${swapProvider}/${swapChain}`;
 
                 const buildResponse = await fetch(buildUrl, {
@@ -565,10 +565,10 @@ export function SwapNodeConfiguration({
                 }
 
                 const { safeTxHash, safeAddress, safeTxData, needsApproval, nodeExecutionId } = buildData.data;
-                console.log("Safe transaction hash built:", safeTxHash);
+                //console.log("Safe transaction hash built:", safeTxHash);
 
                 // Step 2: Sign Safe transaction hash using Safe SDK
-                console.log("Step 2: Signing Safe transaction...");
+                //console.log("Step 2: Signing Safe transaction...");
                 setExecutionState(prev => ({ ...prev, step: 'approving' }));
 
                 if (!ethereumProvider) {
@@ -609,7 +609,7 @@ export function SwapNodeConfiguration({
                     throw new Error("Failed to get signature from Safe transaction");
                 }
 
-                console.log("Transaction signed, executing...");
+                //console.log("Transaction signed, executing...");
                 setExecutionState(prev => ({ ...prev, step: 'swapping' }));
 
                 // Step 3: Execute swap with signature
@@ -639,7 +639,7 @@ export function SwapNodeConfiguration({
                 }
 
                 const result = executeData.data;
-                console.log("Swap executed successfully:", result.txHash);
+                //console.log("Swap executed successfully:", result.txHash);
 
                 setExecutionState({
                     loading: false,
@@ -656,7 +656,7 @@ export function SwapNodeConfiguration({
                 });
 
             } catch (error) {
-                console.error("Safe swap execution failed:", error);
+                //console.error("Safe swap execution failed:", error);
                 setExecutionState({
                     loading: false,
                     error: error instanceof Error ? error.message : "Failed to execute swap",
@@ -672,10 +672,10 @@ export function SwapNodeConfiguration({
         // Fallback to old direct EOA flow (for backwards compatibility when no Safe selected)
         // Warn user if Safe wallet should be used
         if (!selectedSafe) {
-            console.warn("No Safe wallet selected - using direct EOA flow. This requires gas funds in your wallet.");
+            //console.warn("No Safe wallet selected - using direct EOA flow. This requires gas funds in your wallet.");
         }
         if (!authenticated) {
-            console.warn("User not authenticated - using direct EOA flow. Please log in to use Safe wallet.");
+            //console.warn("User not authenticated - using direct EOA flow. Please log in to use Safe wallet.");
         }
 
         setExecutionState({ loading: true, error: null, txHash: null, approvalTxHash: null, success: false, step: 'checking-allowance' });
@@ -689,7 +689,7 @@ export function SwapNodeConfiguration({
             const amountInWei = BigInt(Math.floor(parseFloat(swapAmount) * Math.pow(10, sourceTokenDecimals)));
 
             // Step 0: Check token balance first
-            console.log("Step 0: Checking token balance...");
+            //console.log("Step 0: Checking token balance...");
             const balanceData = encodeFunctionData('balanceOf', [effectiveWalletAddress]);
 
             const balanceResult = await provider.request({
@@ -702,7 +702,7 @@ export function SwapNodeConfiguration({
 
             const currentBalance = BigInt(balanceResult as string);
             const formattedBalance = (Number(currentBalance) / Math.pow(10, sourceTokenDecimals)).toFixed(6);
-            console.log("Current balance:", currentBalance.toString(), `(${formattedBalance} ${sourceTokenSymbol})`, "Required:", amountInWei.toString());
+            //console.log("Current balance:", currentBalance.toString(), `(${formattedBalance} ${sourceTokenSymbol})`, "Required:", amountInWei.toString());
 
             if (currentBalance < amountInWei) {
                 const requiredFormatted = (Number(amountInWei) / Math.pow(10, sourceTokenDecimals)).toFixed(6);
@@ -713,7 +713,7 @@ export function SwapNodeConfiguration({
             }
 
             // Step 1: Check current allowance
-            console.log("Step 1: Checking allowance...");
+            //console.log("Step 1: Checking allowance...");
             const allowanceData = encodeFunctionData('allowance', [effectiveWalletAddress, routerAddress]);
 
             const allowanceResult = await provider.request({
@@ -725,11 +725,11 @@ export function SwapNodeConfiguration({
             });
 
             const currentAllowance = BigInt(allowanceResult as string);
-            console.log("Current allowance:", currentAllowance.toString(), "Required:", amountInWei.toString());
+            //console.log("Current allowance:", currentAllowance.toString(), "Required:", amountInWei.toString());
 
             // Step 2: If allowance is insufficient, request approval
             if (currentAllowance < amountInWei) {
-                console.log("Step 2: Requesting token approval...");
+                //console.log("Step 2: Requesting token approval...");
                 setExecutionState(prev => ({ ...prev, step: 'approving' }));
 
                 // Approve max uint256 for convenience (or you could approve exact amount)
@@ -746,11 +746,11 @@ export function SwapNodeConfiguration({
                     }],
                 });
 
-                console.log("Approval tx sent:", approveTxHash);
+                //console.log("Approval tx sent:", approveTxHash);
                 setExecutionState(prev => ({ ...prev, step: 'waiting-approval', approvalTxHash: approveTxHash as string }));
 
                 // Wait for approval confirmation
-                console.log("Waiting for approval confirmation...");
+                //console.log("Waiting for approval confirmation...");
                 let approvalConfirmed = false;
                 let attempts = 0;
                 const maxAttempts = 60; // 60 seconds timeout
@@ -766,7 +766,7 @@ export function SwapNodeConfiguration({
 
                         if (receipt && (receipt as { status?: string }).status === '0x1') {
                             approvalConfirmed = true;
-                            console.log("Approval confirmed!");
+                            //console.log("Approval confirmed!");
                         } else if (receipt && (receipt as { status?: string }).status === '0x0') {
                             throw new Error("Approval transaction failed");
                         }
@@ -781,11 +781,11 @@ export function SwapNodeConfiguration({
                     throw new Error("Approval transaction timeout. Please try again.");
                 }
             } else {
-                console.log("Sufficient allowance exists, skipping approval step.");
+                //console.log("Sufficient allowance exists, skipping approval step.");
             }
 
             // Step 3: Build and send swap transaction
-            console.log("Step 3: Building swap transaction...");
+            //console.log("Step 3: Building swap transaction...");
             setExecutionState(prev => ({ ...prev, step: 'building-tx' }));
 
             const swapConfig = {
@@ -829,7 +829,7 @@ export function SwapNodeConfiguration({
             const { transaction } = data.data;
 
             // Step 4: Send swap transaction
-            console.log("Step 4: Sending swap transaction...");
+            //console.log("Step 4: Sending swap transaction...");
             setExecutionState(prev => ({ ...prev, step: 'swapping' }));
             const txHash = await provider.request({
                 method: "eth_sendTransaction",
@@ -842,7 +842,7 @@ export function SwapNodeConfiguration({
                 }],
             });
 
-            console.log("Swap tx sent:", txHash);
+            //console.log("Swap tx sent:", txHash);
 
             setExecutionState({
                 loading: false,
@@ -859,7 +859,7 @@ export function SwapNodeConfiguration({
             });
 
         } catch (error) {
-            console.error("Swap execution failed:", error);
+            //console.error("Swap execution failed:", error);
             setExecutionState({
                 loading: false,
                 error: error instanceof Error ? error.message : "Failed to execute swap",

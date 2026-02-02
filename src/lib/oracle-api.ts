@@ -56,10 +56,10 @@ export async function fetchAvailableFeeds(
       return response.data.data;
     }
 
-    console.error("Failed to fetch feeds:", response.error);
+    // console.error("Failed to fetch feeds:", response.error);
     return null;
   } catch (error) {
-    console.error("Error fetching feeds:", error);
+    // console.error("Error fetching feeds:", error);
     return null;
   }
 }
@@ -81,10 +81,10 @@ export async function fetchOracleConfig(
       return response.data.data;
     }
 
-    console.error("Failed to fetch oracle config:", response.error);
+    // console.error("Failed to fetch oracle config:", response.error);
     return null;
   } catch (error) {
-    console.error("Error fetching oracle config:", error);
+    // console.error("Error fetching oracle config:", error);
     return null;
   }
 }

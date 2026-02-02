@@ -341,7 +341,7 @@ export function LendingNodeConfiguration({
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
         } catch (error) {
-            console.error("Failed to copy address:", error);
+            //Failed to copy address:
         }
     }, [effectiveWalletAddress]);
 

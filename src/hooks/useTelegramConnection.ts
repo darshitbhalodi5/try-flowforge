@@ -136,7 +136,7 @@ export function useTelegramConnection({
                 showNotification("error", errData.error?.message || "Failed to load bot info");
             }
         } catch (error) {
-            console.error("Failed to load bot info:", error);
+            // console.error("Failed to load bot info:", error);
         } finally {
             setLoading((prev) => ({ ...prev, bot: false }));
         }
@@ -165,7 +165,7 @@ export function useTelegramConnection({
                 showNotification("error", "Failed to load chats");
             }
         } catch (error) {
-            console.error("Failed to load chats:", error);
+            // console.error("Failed to load chats:", error);
             showNotification("error", "Failed to load chats");
         } finally {
             setLoading((prev) => ({ ...prev, chats: false }));
@@ -199,7 +199,7 @@ export function useTelegramConnection({
                 }
             }
         } catch (error) {
-            console.error("Failed to load connections:", error);
+            // console.error("Failed to load connections:", error);
         } finally {
             setLoading((prev) => ({ ...prev, connections: false }));
         }
@@ -252,7 +252,7 @@ export function useTelegramConnection({
                 showNotification("error", errData.error?.message || "Failed to save connection");
             }
         } catch (error) {
-            console.error("Failed to save connection:", error);
+            // console.error("Failed to save connection:", error);
             showNotification("error", "Failed to save connection");
         } finally {
             setLoading((prev) => ({ ...prev, saving: false }));
@@ -288,7 +288,7 @@ export function useTelegramConnection({
                 showNotification("success", "Connection deleted");
             }
         } catch (error) {
-            console.error("Failed to delete connection:", error);
+            // console.error("Failed to delete connection:", error);
             showNotification("error", "Failed to delete connection");
         }
     }, [getPrivyAccessToken, selectedConnection, onDataChange, loadConnections, showNotification, clearNotification]);
@@ -335,7 +335,7 @@ export function useTelegramConnection({
                 showNotification("error", errData.error?.message || "Failed to send message");
             }
         } catch (error) {
-            console.error("Failed to send message:", error);
+            // console.error("Failed to send message:", error);
             showNotification("error", "Failed to send message");
         } finally {
             setLoading((prev) => ({ ...prev, sending: false }));
@@ -394,7 +394,7 @@ export function useTelegramConnection({
                 showNotification("error", errData.error?.message || "Failed to generate verification code");
             }
         } catch (error) {
-            console.error("Failed to generate verification code:", error);
+            // console.error("Failed to generate verification code:", error);
             showNotification("error", "Failed to generate verification code");
         } finally {
             setLoading((prev) => ({ ...prev, verification: false }));
@@ -428,7 +428,7 @@ export function useTelegramConnection({
                 }
             }
         } catch (error) {
-            console.error("Failed to check verification status:", error);
+            // console.error("Failed to check verification status:", error);
         } finally {
             setLoading((prev) => ({ ...prev, verification: false }));
         }
@@ -455,7 +455,7 @@ export function useTelegramConnection({
                 showNotification("info", "Verification cancelled. You can generate a new code.");
             }
         } catch (error) {
-            console.error("Failed to cancel verification:", error);
+            // console.error("Failed to cancel verification:", error);
         } finally {
             setLoading((prev) => ({ ...prev, verification: false }));
         }

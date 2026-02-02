@@ -70,7 +70,7 @@ function autoRegisterConfigComponents() {
 
       // Verify module structure safely
       if (!mod || typeof mod !== 'object') {
-        console.warn(`Module for ${key} is invalid or empty`);
+        //Module for ${key} is invalid or empty
         return;
       }
 
@@ -79,7 +79,7 @@ function autoRegisterConfigComponents() {
         mod.default || mod[fileName];
 
       if (!component) {
-        console.warn(`No component found in ${key} (checked default and ${fileName})`);
+        //No component found in ${key} (checked default and ${fileName})
         return;
       }
 
@@ -95,7 +95,7 @@ function autoRegisterConfigComponents() {
     });
 
   } catch (error) {
-    console.error("Auto-registration error:", error);
+    //Auto-registration error:
   }
 }
 

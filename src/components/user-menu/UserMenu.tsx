@@ -62,7 +62,7 @@ export function UserMenu() {
 
   const handleTestnetToggle = async (checked: boolean) => {
     if (isTestnetOnlyMode) {
-      console.log('Network switching is disabled in testnet-only mode');
+      // console.log('Network switching is disabled in testnet-only mode');
       return;
     }
 
@@ -75,7 +75,7 @@ export function UserMenu() {
 
       await embeddedWallet.switchChain(targetChainId);
     } catch (error) {
-      console.error('Failed to switch chain:', error);
+      // console.error('Failed to switch chain:', error);
     }
   };
 
