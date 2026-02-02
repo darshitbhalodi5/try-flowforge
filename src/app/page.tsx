@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import NavBar from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { ProtocolListSection } from "@/components/home/ProtocolListSection";
+import { StartWithProtocolSection } from "@/components/home/StartWithProtocolSection";
+import { HeroSectionWrapper } from "@/components/home/HeroSectionWrapper";
 
 export const metadata: Metadata = {
   title: "FlowForge - Unified Web2 & Web3 Automation Platform",
@@ -12,7 +15,9 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       <NavBar />
-      <p> Checkout this simple home page</p>
+      <HeroSectionWrapper />
+      <StartWithProtocolSection />
+      <ProtocolListSection />
       <Footer />
     </div>
   );
