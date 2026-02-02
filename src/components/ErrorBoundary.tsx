@@ -63,7 +63,7 @@ export class ErrorBoundary extends Component<
                     />
 
                     {/* Modal Content */}
-                    <div className="relative z-50 w-full max-w-[425px] flex flex-col items-center justify-center p-6 gap-4 bg-black/95 border-white/20 border rounded-xl shadow-lg animate-in fade-in-0 zoom-in-95 duration-200">
+                    <div className="relative z-50 w-full max-w-106.25 flex flex-col items-center justify-center p-6 gap-4 bg-black/95 border-white/20 border rounded-xl shadow-lg animate-in fade-in-0 zoom-in-95 duration-200">
                         <div className="w-16 h-16 rounded-full bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
                             <BiError className="w-8 h-8 text-orange-500" />
                         </div>
@@ -80,13 +80,13 @@ export class ErrorBoundary extends Component<
                         <div className="flex gap-3 w-full justify-center pt-2">
                             <Button
                                 onClick={() => window.location.href = "/"}
-                                className="flex-1 min-w-[100px]"
+                                className="flex-1 min-w-25"
                             >
                                 Go Home
                             </Button>
                             <Button
                                 onClick={this.handleReset}
-                                className="flex-1 min-w-[100px]"
+                                className="flex-1 min-w-25"
                             >
                                 <BiRefresh className="w-4 h-4 mr-2" />
                                 Try Again
