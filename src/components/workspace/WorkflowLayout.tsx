@@ -327,6 +327,7 @@ export function WorkflowLayout({ onCategoryChange }: WorkflowLayoutProps) {
 
                     {/* Mobile Config Drawer - Slides from right (below navbar) */}
                     <aside
+                        data-lenis-prevent
                         className={cn(
                             "md:hidden fixed top-16 right-0 bottom-0 z-50",
                             "w-[320px] max-w-[85vw]",
@@ -343,7 +344,8 @@ export function WorkflowLayout({ onCategoryChange }: WorkflowLayoutProps) {
 
             {/* Desktop: Right Sidebar - Configuration Panel */}
             <aside
-                className={`rounded-l-xl border-l border-white/10 bg-white/5 overflow-y-auto transition-all duration-200 ${showRightSidebar ? "md:block" : "hidden"} md:w-70 lg:w-75 xl:w-[320px]`}
+                data-lenis-prevent
+                className={` max-h-screen overflow-y-auto rounded-l-xl border-l border-white/10 bg-white/5 transition-all duration-200 ${showRightSidebar ? "md:block" : "hidden"} md:w-[280px] lg:w-[300px] xl:w-[320px]`}
             >
                 {showRightSidebar && <WorkflowRightSidebar />}
             </aside>

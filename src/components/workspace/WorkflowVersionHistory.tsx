@@ -52,7 +52,7 @@ export function WorkflowVersionHistory({ className = "" }: WorkflowVersionHistor
             if (result.success && result.versions) {
                 setVersions(result.versions);
             }
-        } catch (error) {
+        } catch {
             // console.error("Error fetching versions:", error);
         } finally {
             setIsLoading(false);
@@ -102,7 +102,7 @@ export function WorkflowVersionHistory({ className = "" }: WorkflowVersionHistor
             } else {
                 // alert(`Failed to restore: ${result.error?.message || "Unknown error"}`);
             }
-        } catch (error) {
+        } catch {
             // console.error("Error restoring version:", error);
             // alert(`Error restoring version: ${error instanceof Error ? error.message : String(error)}`);
         } finally {
