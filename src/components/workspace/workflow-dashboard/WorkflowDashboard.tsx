@@ -124,7 +124,7 @@ export function WorkflowDashboard() {
         try {
             const accessToken = await getPrivyAccessToken();
             if (!accessToken) {
-                alert("Unable to authenticate. Please log in again.");
+                // alert("Unable to authenticate. Please log in again.");
                 return;
             }
 
@@ -133,10 +133,10 @@ export function WorkflowDashboard() {
             if (result.success) {
                 setWorkflows((prev) => prev.filter((w) => w.id !== workflowId));
             } else {
-                alert(result.error?.message || "Failed to delete workflow");
+                // alert(result.error?.message || "Failed to delete workflow");
             }
         } catch {
-            alert("An unexpected error occurred");
+            // alert("An unexpected error occurred");
             // console.error(err);
         } finally {
             setIsDeleting(null);
