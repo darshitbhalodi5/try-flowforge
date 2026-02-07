@@ -7,12 +7,14 @@ import React, {
     useCallback,
     useEffect,
     useMemo,
+    useRef,
 } from "react";
 import { usePrivy } from "@privy-io/react-auth";
 import { usePrivyWallet } from "@/hooks/usePrivyWallet";
 import { useCreateSafeWallet } from "@/web3/hooks/useCreateSafeWallet";
 import { API_CONFIG } from "@/config/api";
 import { ChainDefinition } from "@/web3/chains";
+
 import {
     validateAndGetOnboardingChains,
     ensureChainSelected,
@@ -53,8 +55,15 @@ export interface OnboardingContextType {
     chainsToSetup: ChainConfig[];
     progress: Record<string, ChainProgress>;
     currentSigningChain: string | null;
+    /** True when the wallet-choice step is resolved (user chose, or returning user auto-skipped) */
+    walletChoiceCompleted: boolean;
+    /** Same as walletChoiceCompleted — kept for backward compat */
+    walletChoiceCompletedByUser: boolean;
+    /** True once the initial "does user already exist?" check has finished */
+    initialCheckDone: boolean;
 
     // Actions
+    setWalletChoiceCompleted: (value: boolean) => void;
     startOnboarding: () => Promise<void>;
     retryChain: (chainId: number) => Promise<void>;
     dismissOnboarding: () => void;
@@ -104,6 +113,17 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({
     const [progress, setProgress] = useState<Record<string, ChainProgress>>({});
     const [currentSigningChain, setCurrentSigningChain] = useState<string | null>(null);
 
+    // Wallet choice: false until the user explicitly acts OR the early check auto-completes it
+    const [walletChoiceCompleted, setWalletChoiceCompletedState] = useState(false);
+    // True once the early "does user exist?" check has finished
+    const [initialCheckDone, setInitialCheckDone] = useState(false);
+
+    const prevAuthRef = useRef(false);
+
+    const setWalletChoiceCompleted = useCallback((value: boolean) => {
+        setWalletChoiceCompletedState(value);
+    }, []);
+
     // Fetch user data by authenticated user ID (safer than by address)
     const fetchUserData = useCallback(async (): Promise<UserData | null> => {
         if (!authenticated) return null;
@@ -132,6 +152,49 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({
             return null;
         }
     }, [authenticated, getPrivyAccessToken]);
+
+    // ── Early user-existence check ──────────────────────────────────────
+    // Runs as soon as the user authenticates.  If the backend already knows
+    // this user (returning user), we auto-complete the wallet-choice step
+    // so the "Connect Wallet?" modal never flashes for them.
+    // For new users the backend returns 401 → fetchUserData returns null →
+    // walletChoiceCompleted stays false and the modal shows.
+    useEffect(() => {
+        const justLoggedOut = !authenticated && prevAuthRef.current;
+        prevAuthRef.current = authenticated;
+
+        if (justLoggedOut || !authenticated) {
+            // Reset everything on logout / before auth
+            setWalletChoiceCompletedState(false);
+            setInitialCheckDone(false);
+            setNeedsOnboarding(false);
+            setIsOnboarding(false);
+            return;
+        }
+
+        if (!ready) return;
+
+        let cancelled = false;
+
+        (async () => {
+            try {
+                const user = await fetchUserData();
+                if (cancelled) return;
+
+                if (user) {
+                    // Returning user with a backend record → skip modal
+                    setWalletChoiceCompletedState(true);
+                }
+                // null → new user, walletChoiceCompleted stays false
+            } catch {
+                // Ignore – modal will show and user can proceed
+            } finally {
+                if (!cancelled) setInitialCheckDone(true);
+            }
+        })();
+
+        return () => { cancelled = true; };
+    }, [ready, authenticated, fetchUserData]);
 
     // Validate mode on mount
     useEffect(() => {
@@ -321,9 +384,16 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({
         ]
     );
 
-    // Check if user needs onboarding after authentication and mode validation
+    // Check if user needs onboarding only after the wallet-choice step is done.
+    // This avoids 401 from /users/me when the user has no linked wallet yet.
     useEffect(() => {
-        if (!ready || !authenticated || !walletAddress || isModeValid !== true) {
+        if (
+            !ready ||
+            !authenticated ||
+            !walletAddress ||
+            isModeValid !== true ||
+            !walletChoiceCompleted
+        ) {
             setNeedsOnboarding(false);
             return;
         }
@@ -333,7 +403,13 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({
             try {
                 const user = await fetchUserData();
 
-                // Check which chains need setup
+                // New user (backend returned 401 / no record) → needs full onboarding
+                if (user === null) {
+                    setNeedsOnboarding(true);
+                    return;
+                }
+
+                // Existing user – check which chains still need setup
                 const chainsNeedingSetup = chainsToSetup.filter((chain) => {
                     if (chain.id === 421614) {
                         return !user?.safe_wallet_address_testnet;
@@ -385,10 +461,19 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({
         };
 
         checkUser();
-    }, [ready, authenticated, walletAddress, fetchUserData, chainsToSetup, isModeValid]);
+    }, [
+        ready,
+        authenticated,
+        walletAddress,
+        fetchUserData,
+        chainsToSetup,
+        isModeValid,
+        walletChoiceCompleted,
+    ]);
 
-    // Start the onboarding process
+    // Start the onboarding process (one run per click; use Retry on a chain to retry that chain only)
     const startOnboarding = useCallback(async () => {
+        if (isOnboarding) return;
         setIsOnboarding(true);
 
         let allSuccessful = true;
@@ -423,7 +508,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({
         }
 
         setIsOnboarding(false);
-    }, [chainsToSetup, progress, processChain, fetchUserData]);
+    }, [isOnboarding, chainsToSetup, progress, processChain, fetchUserData]);
 
     // Retry a specific chain
     const retryChain = useCallback(
@@ -469,6 +554,10 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({
             chainsToSetup,
             progress,
             currentSigningChain,
+            walletChoiceCompleted,
+            walletChoiceCompletedByUser: walletChoiceCompleted,
+            initialCheckDone,
+            setWalletChoiceCompleted,
             startOnboarding,
             retryChain,
             dismissOnboarding,
@@ -481,6 +570,9 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({
             chainsToSetup,
             progress,
             currentSigningChain,
+            walletChoiceCompleted,
+            initialCheckDone,
+            setWalletChoiceCompleted,
             startOnboarding,
             retryChain,
             dismissOnboarding,

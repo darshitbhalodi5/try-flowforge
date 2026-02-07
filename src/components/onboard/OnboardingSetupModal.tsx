@@ -1,12 +1,15 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import {
     useOnboarding,
     OnboardingStepStatus,
     ChainProgress,
     ChainConfig,
 } from "@/context/OnboardingContext";
+import { usePrivy } from "@privy-io/react-auth";
+import { usePrivyWallet } from "@/hooks/usePrivyWallet";
+import { CHAIN_IDS } from "@/web3/chains";
 import { TbFidgetSpinner } from "react-icons/tb";
 import {
     FaCheckCircle,
@@ -150,17 +153,18 @@ export const OnboardingSetupModal: React.FC = () => {
         chainsToSetup,
         progress,
         currentSigningChain,
+        walletChoiceCompleted,
         startOnboarding,
         retryChain,
         dismissOnboarding,
     } = useOnboarding();
+    const { authenticated, ready } = usePrivy();
+    const { chainId } = usePrivyWallet();
+    const hasAutoStartedRef = useRef(false);
 
-    // Auto-start onboarding when modal appears
-    useEffect(() => {
-        if (needsOnboarding && !isOnboarding && !isCheckingUser && isModeValid === true) {
-            startOnboarding();
-        }
-    }, [needsOnboarding, isOnboarding, isCheckingUser, isModeValid, startOnboarding]);
+    // Yield to WalletChoiceModal until the wallet-choice step is resolved
+    const walletChoiceShouldShow =
+        authenticated && ready && !walletChoiceCompleted;
 
     // Calculate completion status
     const allComplete = chainsToSetup.every((chain) => {
@@ -173,6 +177,25 @@ export const OnboardingSetupModal: React.FC = () => {
         );
     });
 
+    const allIdle = chainsToSetup.every((chain) => {
+        const chainProgress = progress[chain.id];
+        return chainProgress?.walletCreate === "idle";
+    });
+
+    // When wallet is on Arbitrum Sepolia and setup is idle, auto-start once (e.g. after "Connect wallet" success)
+    useEffect(() => {
+        if (
+            needsOnboarding &&
+            allIdle &&
+            !isOnboarding &&
+            chainId === CHAIN_IDS.ARBITRUM_SEPOLIA &&
+            !hasAutoStartedRef.current
+        ) {
+            hasAutoStartedRef.current = true;
+            startOnboarding();
+        }
+    }, [needsOnboarding, allIdle, isOnboarding, chainId, startOnboarding]);
+
     // Close modal after completion animation
     useEffect(() => {
         if (allComplete) {
@@ -183,6 +206,10 @@ export const OnboardingSetupModal: React.FC = () => {
         }
     }, [allComplete, dismissOnboarding]);
 
+    // Don't show if wallet choice modal should be shown first
+    if (walletChoiceShouldShow) {
+        return null;
+    }
     // Don't show if not needed or still checking
     if (isCheckingUser || !needsOnboarding) {
         return null;
@@ -250,7 +277,25 @@ export const OnboardingSetupModal: React.FC = () => {
                             Sign in your wallet
                         </p>
                     ) : null}
-                    {!isOnboarding && !allComplete && (
+                    {allIdle && !isOnboarding && (
+                        <div className="flex gap-3 w-full justify-center">
+                            <Button
+                                onClick={() => startOnboarding()}
+                                className="flex-1 min-w-25"
+                            >
+                                Start setup
+                            </Button>
+                            <Button
+                                onClick={dismissOnboarding}
+                                variant="delete"
+                                border
+                                className="flex-1 min-w-25"
+                            >
+                                Skip
+                            </Button>
+                        </div>
+                    )}
+                    {!isOnboarding && !allComplete && !allIdle && (
                         <div className="flex gap-3 w-full justify-center">
                             <Button
                                 onClick={dismissOnboarding}

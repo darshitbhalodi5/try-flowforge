@@ -32,11 +32,10 @@ interface UserProfile {
 
 export function UserMenu() {
   const { user, logout } = usePrivy();
-  const { wallet: embeddedWallet, chainId } = usePrivyWallet();
+  const { wallet: embeddedWallet, chainId, walletAddress, getPrivyAccessToken } = usePrivyWallet();
   const [isOpen, setIsOpen] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  const { getPrivyAccessToken } = usePrivyWallet();
 
   // Network configurations
   const currentChainId = chainId;
@@ -83,11 +82,12 @@ export function UserMenu() {
     }
   }, [getPrivyAccessToken]);
 
+  // Only fetch profile when user has a linked wallet (backend returns 401 otherwise)
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && walletAddress) {
       fetchProfile();
     }
-  }, [isOpen, fetchProfile]);
+  }, [isOpen, walletAddress, fetchProfile]);
 
   // Early return AFTER all hooks
   if (!email) return null;
@@ -179,7 +179,9 @@ export function UserMenu() {
                   <span className="flex-1">Arbitrum One</span>
                   <Switch
                     checked={currentChainId === CHAIN_IDS.ARBITRUM_MAINNET}
-                    onCheckedChange={() => handleNetworkSwitch(CHAIN_IDS.ARBITRUM_MAINNET)}
+                    onCheckedChange={(checked) =>
+                      handleNetworkSwitch(checked ? CHAIN_IDS.ARBITRUM_MAINNET : CHAIN_IDS.ARBITRUM_SEPOLIA)
+                    }
                     gradient={gradient}
                   />
                 </div>
@@ -210,7 +212,9 @@ export function UserMenu() {
                 <span className="flex-1">Arbitrum Sepolia</span>
                 <Switch
                   checked={currentChainId === CHAIN_IDS.ARBITRUM_SEPOLIA}
-                  onCheckedChange={() => handleNetworkSwitch(CHAIN_IDS.ARBITRUM_SEPOLIA)}
+                  onCheckedChange={(checked) =>
+                    handleNetworkSwitch(checked ? CHAIN_IDS.ARBITRUM_SEPOLIA : CHAIN_IDS.ARBITRUM_MAINNET)
+                  }
                   gradient={gradient}
                 />
               </div>

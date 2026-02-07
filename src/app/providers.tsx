@@ -8,6 +8,7 @@ import { SafeWalletProvider } from "@/context/SafeWalletContext";
 import { OnboardingProvider } from "@/context/OnboardingContext";
 import { ToastProvider } from "@/context/ToastContext";
 import { OnboardingSetupModal } from "@/components/onboard/OnboardingSetupModal";
+import { WalletChoiceModal } from "@/components/onboard/WalletChoiceModal";
 import { LenisProvider } from "./LenisProvider";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
@@ -40,12 +41,18 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                         loginMethods: ["email"],
                         embeddedWallets: {
                             ethereum: {
-                                createOnLogin: "users-without-wallets",
+                                createOnLogin: "off",
                             },
                         },
                         appearance: {
                             theme: "dark",
                             accentColor: "#FF6500",
+                            walletList: [
+                                "metamask",
+                                "wallet_connect_qr",
+                                "wallet_connect",
+                                "detected_ethereum_wallets",
+                            ],
                         },
                         defaultChain: defaultChain,
                         supportedChains: supportedChains,
@@ -55,6 +62,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                         <OnboardingProvider>
                             <SafeWalletProvider>
                                 {children}
+                                <WalletChoiceModal />
                                 <OnboardingSetupModal />
                             </SafeWalletProvider>
                         </OnboardingProvider>

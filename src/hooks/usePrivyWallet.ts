@@ -14,13 +14,22 @@ interface EthereumProvider {
 }
 
 /**
- * Hook for interacting with Privy embedded wallet
+ * Hook for interacting with the user's canonical Privy wallet.
+ * Prefers the first external wallet (MetaMask, WalletConnect, etc.) if linked;
+ * otherwise uses the embedded wallet. Used for Safe creation and all backend flows.
  */
 export function usePrivyWallet() {
   const { authenticated, ready, getAccessToken } = usePrivy();
   const { wallets } = useWallets();
-  // Get the embedded wallet (first wallet is typically the embedded one)
-  const wallet = wallets.find((w) => w.walletClientType === "privy");
+  // Only consider wallets that are *linked* to the Privy account.
+  // useWallets() may include injected browser wallets (e.g. MetaMask extension)
+  // that are detected but NOT linked (linked === false). The backend reads
+  // user.linkedAccounts, so the frontend must use the same set for consistency.
+  const linkedWallets = wallets.filter((w) => w.linked);
+  // Canonical wallet: prefer external (user chose "Connect existing") else embedded
+  const externalWallet = linkedWallets.find((w) => w.walletClientType !== "privy");
+  const embeddedWallet = linkedWallets.find((w) => w.walletClientType === "privy");
+  const wallet = externalWallet ?? embeddedWallet;
 
   // State for provider and chain
   const [chainId, setChainId] = useState<number | null>(null);
