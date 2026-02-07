@@ -14,6 +14,7 @@ export enum SupportedChain {
 // Supported Swap Providers
 export enum SwapProvider {
     UNISWAP = 'UNISWAP',
+    UNISWAP_V4 = 'UNISWAP_V4',
     RELAY = 'RELAY',
     ONEINCH = 'ONEINCH',
     LIFI = 'LIFI',

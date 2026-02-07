@@ -73,6 +73,18 @@ const UNISWAP_ROUTER_ADDRESSES: Record<SupportedChain, string> = {
     [SupportedChain.ARBITRUM]: '0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45',
     [SupportedChain.ARBITRUM_SEPOLIA]: '0x101F443B4d1b059569D643917553c771E1b9663E',
     [SupportedChain.ETHEREUM_SEPOLIA]: '0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E',
+    [SupportedChain.BASE]: '',
+};
+
+// Permit2 (same on all EVM chains). For Uniswap V4, first approval is token -> Permit2.
+const PERMIT2_ADDRESS = '0x000000000022D473030F116dDEE9F6B43aC78BA3';
+
+// Universal Router for Uniswap V4 execution (must have Permit2 allowance before swap).
+const UNIVERSAL_ROUTER_ADDRESSES: Record<SupportedChain, string> = {
+    [SupportedChain.ARBITRUM]: '0xa51afafe0263b40edaef0df8781ea9aa03e381a3',
+    [SupportedChain.ARBITRUM_SEPOLIA]: '0xefd1d4bd4cf1e86da286bb4cb1b8bced9c10ba47',
+    [SupportedChain.ETHEREUM_SEPOLIA]: '0x3A9D48AB9751398BbFa63ad67599Bb04e4BdF98b',
+    [SupportedChain.BASE]: '',
 };
 
 const ERC20_ABI = {
@@ -706,7 +718,11 @@ export function SwapNodeConfiguration({
         try {
             // Get the wallet provider
             const provider = await embeddedWallet.getEthereumProvider();
-            const routerAddress = UNISWAP_ROUTER_ADDRESSES[swapChain];
+            // Uniswap V4: first approval is token -> Permit2; others use router for allowance
+            const routerAddress =
+                swapProvider === SwapProvider.UNISWAP_V4
+                    ? PERMIT2_ADDRESS
+                    : UNISWAP_ROUTER_ADDRESSES[swapChain];
 
             // Convert amount to wei/smallest unit based on token decimals
             const amountInWei = BigInt(Math.floor(parseFloat(swapAmount) * Math.pow(10, sourceTokenDecimals)));
@@ -805,6 +821,50 @@ export function SwapNodeConfiguration({
                 }
             } else {
                 //console.log("Sufficient allowance exists, skipping approval step.");
+            }
+
+            // Uniswap V4 only: Permit2 must allow Universal Router to pull the token
+            if (swapProvider === SwapProvider.UNISWAP_V4) {
+                const universalRouter = UNIVERSAL_ROUTER_ADDRESSES[swapChain];
+                const maxUint160 = BigInt("0xffffffffffffffffffffffffffffffffffffffff");
+                const amount160 = amountInWei > maxUint160 ? maxUint160 : amountInWei;
+                const expiration = Math.floor(Date.now() / 1000) + 3600;
+                const permit2ApproveIface = new ethers.Interface([
+                    "function approve(address token, address spender, uint160 amount, uint48 expiration)",
+                ]);
+                const permit2ApproveData = permit2ApproveIface.encodeFunctionData("approve", [
+                    sourceTokenAddress,
+                    universalRouter,
+                    amount160.toString(),
+                    expiration,
+                ]);
+                setExecutionState(prev => ({ ...prev, step: "approving" }));
+                const permit2TxHash = await provider.request({
+                    method: "eth_sendTransaction",
+                    params: [{
+                        from: effectiveWalletAddress,
+                        to: PERMIT2_ADDRESS,
+                        data: permit2ApproveData,
+                    }],
+                });
+                setExecutionState(prev => ({ ...prev, step: "waiting-approval", approvalTxHash: permit2TxHash as string }));
+                let permit2Confirmed = false;
+                let permit2Attempts = 0;
+                while (!permit2Confirmed && permit2Attempts < 60) {
+                    await new Promise(r => setTimeout(r, 1000));
+                    try {
+                        const receipt = await provider.request({
+                            method: "eth_getTransactionReceipt",
+                            params: [permit2TxHash],
+                        }) as { status?: string } | null;
+                        if (receipt?.status === "0x1") permit2Confirmed = true;
+                        else if (receipt?.status === "0x0") throw new Error("Permit2 approval failed");
+                    } catch {
+                        // keep waiting
+                    }
+                    permit2Attempts++;
+                }
+                if (!permit2Confirmed) throw new Error("Permit2 approval timeout. Please try again.");
             }
 
             // Step 3: Build and send swap transaction

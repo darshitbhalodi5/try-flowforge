@@ -89,7 +89,7 @@ export interface AiTransformNodeData extends BaseNodeData {
 
 // Swap Node Data (for Uniswap, Relay, 1inch, LIFI blocks)
 export interface SwapNodeData extends BaseNodeData {
-    swapProvider?: "UNISWAP" | "RELAY" | "ONEINCH" | "LIFI";
+    swapProvider?: "UNISWAP" | "UNISWAP_V4" | "RELAY" | "ONEINCH" | "LIFI";
     swapChain?: "ARBITRUM" | "ARBITRUM_SEPOLIA" | "ETHEREUM_SEPOLIA" | "BASE";
     /** Destination chain for cross-chain swaps (LiFi). When set and different from swapChain, use cross-chain route. */
     swapToChain?: "ARBITRUM" | "BASE";

@@ -26,8 +26,8 @@ export const uniswapBlock: BlockDefinition = {
         label: "Uniswap Swap",
         description: "Swap tokens via Uniswap",
         status: "idle" as const,
-        // Fixed provider for this block
-        swapProvider: SwapProvider.UNISWAP,
+        // Fixed provider for this block (V4: Quoter + Universal Router + Permit2)
+        swapProvider: SwapProvider.UNISWAP_V4,
         swapChain: SupportedChain.ARBITRUM,
         swapType: SwapType.EXACT_INPUT,
         // Source token
