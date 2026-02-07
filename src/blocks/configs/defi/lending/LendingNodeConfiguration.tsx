@@ -147,7 +147,12 @@ export function LendingNodeConfiguration({
         }
 
         // Set chain automatically based on current network if not set
-        const targetChain = Number(currentChainId) === CHAIN_IDS.ETHEREUM_SEPOLIA ? SupportedChain.ETHEREUM_SEPOLIA : SupportedChain.ARBITRUM;
+        const targetChain =
+            Number(currentChainId) === CHAIN_IDS.ETHEREUM_SEPOLIA
+                ? SupportedChain.ETHEREUM_SEPOLIA
+                : Number(currentChainId) === CHAIN_IDS.ARBITRUM_SEPOLIA
+                    ? SupportedChain.ARBITRUM_SEPOLIA
+                    : SupportedChain.ARBITRUM;
         if (nodeData.lendingChain !== targetChain) {
             updates.lendingChain = targetChain;
         }

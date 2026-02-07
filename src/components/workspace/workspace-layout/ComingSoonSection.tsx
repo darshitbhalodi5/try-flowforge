@@ -7,6 +7,15 @@ import {
     LuChevronDown,
     LuChevronRight,
     LuExternalLink,
+    LuTrendingUp,
+    LuArrowLeftRight,
+    LuActivity,
+    LuDroplets,
+    LuLayers,
+    LuDollarSign,
+    LuGamepad2,
+    LuVote,
+    LuShield,
 } from "react-icons/lu";
 import {
     comingSoonCategories,
@@ -77,11 +86,27 @@ interface ComingSoonCategoryCardProps {
     onToggle: () => void;
 }
 
+//eslint-disable-next-line @typescript-eslint/no-explicit-any
+const categoryIconMap: Record<string, any> = {
+    TrendingUp: LuTrendingUp,
+    ArrowLeftRight: LuArrowLeftRight,
+    LineChart: LuActivity,
+    Droplets: LuDroplets,
+    Layers: LuLayers,
+    DollarSign: LuDollarSign,
+    Gamepad2: LuGamepad2,
+    Vote: LuVote,
+    BarChart3: LuActivity,
+    Shield: LuShield,
+};
+
 function ComingSoonCategoryCard({
     category,
     isExpanded,
     onToggle,
 }: ComingSoonCategoryCardProps) {
+    const CategoryIcon = category.iconName ? categoryIconMap[category.iconName] : null;
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -93,10 +118,16 @@ function ComingSoonCategoryCard({
                 onClick={onToggle}
                 className={`w-full flex items-center justify-between gap-3 p-3 bg-linear-to-r ${themeColor.categoryGradient} ${themeColor.categoryBorder} border rounded-xl transition-all duration-300`}
             >
-                {/* Category Name */}
-                <span className="text-sm font-semibold text-white/90">
-                    {category.label}
-                </span>
+                <div className="flex items-center gap-3">
+                    {/* Category Icon */}
+                    <div className="shrink-0 text-white/60">
+                        {CategoryIcon && <CategoryIcon className="w-4 h-4" />}
+                    </div>
+                    {/* Category Name */}
+                    <span className="text-sm font-semibold text-white/90">
+                        {category.label}
+                    </span>
+                </div>
 
                 {/* Expand Icon */}
                 <div className="shrink-0 text-white/40">

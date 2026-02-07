@@ -22,7 +22,7 @@ import { generateIconRegistry } from "@/blocks/registry";
 import type { BlockDefinition } from "@/blocks/types";
 import { BlockProvider, useBlock } from "@/blocks/context";
 import { usePrivyWallet } from "@/hooks/usePrivyWallet";
-import { isTestnet, isMainnet, CHAIN_IDS } from "@/web3/chains";
+// import { isTestnet, isMainnet, CHAIN_IDS } from "@/web3/chains";
 import { SaveWorkflowModal } from "@/components/workspace/SaveWorkflowModal";
 import { useCanvasDimensions } from "@/hooks/useCanvasDimensions";
 import { useUnsavedChanges } from "@/hooks/useWorkflowState";
@@ -906,33 +906,16 @@ const WorkflowProviderInner: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   // Get current network from user menu
-  const { chainId } = usePrivyWallet();
+  // const { chainId } = usePrivyWallet();
 
   // Check if a swap block is disabled based on network availability
   const isSwapBlockDisabled = useCallback(
-    (blockId: string): boolean => {
-      const isMainnetChain = isMainnet(chainId);
-
-      if (blockId === "relay") {
-        return true;
-      }
-
-      if (blockId === "oneinch") {
-        return !isMainnetChain;
-      }
-
-      // LiFi only supports mainnet chains - their API doesn't support testnets
-      if (blockId === "lifi") {
-        return !isMainnetChain;
-      }
-
-      if (blockId === "uniswap") {
-        return false;
-      }
-
+    //eslint-disable-next-line @typescript-eslint/no-unused-vars
+    (_blockId: string): boolean => {
+      // Keep all swap blocks enabled for all networks as per user request
       return false;
     },
-    [chainId]
+    []
   );
 
   // Check if block is disabled
@@ -942,19 +925,10 @@ const WorkflowProviderInner: React.FC<{ children: React.ReactNode }> = ({
         return nodes.some((n) => n.type === "wallet-node");
       }
 
-      // Disable Aave and Compound on Arbitrum Sepolia (testnet)
-      // Note: Aave IS available on Ethereum Sepolia
-      const isTestnetChain = isTestnet(chainId);
-      if (blockId === "aave" && isTestnetChain && chainId !== CHAIN_IDS.ETHEREUM_SEPOLIA) {
-        return true;
-      }
-      if (blockId === "compound" && isTestnetChain) {
-        return true;
-      }
-
+      // All blocks enabled across all networks as per user request
       return isSwapBlockDisabled(blockId);
     },
-    [nodes, isSwapBlockDisabled, chainId]
+    [nodes, isSwapBlockDisabled]
   );
 
   // Handle node click - select node

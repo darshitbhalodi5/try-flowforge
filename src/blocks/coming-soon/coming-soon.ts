@@ -30,8 +30,8 @@ export type {
 export * from "./yield";
 export * from "./bridges";
 export * from "./perpetuals";
-export * from "./liquidity";
 export * from "./staking";
+export * from "./liquidity";
 export * from "./stablecoins";
 export * from "./gaming";
 export * from "./governance";
@@ -62,13 +62,6 @@ export const comingSoonCategories: ComingSoonCategoryDefinition[] = [
     iconName: "LineChart",
     description: "Leveraged Trading",
     blocks: perpetualBlocks,
-  },
-  {
-    id: "liquidity",
-    label: "Liquidity Provision",
-    iconName: "Droplets",
-    description: "LP Management & Rebalancing",
-    blocks: liquidityBlocks,
   },
   {
     id: "staking",
@@ -111,6 +104,13 @@ export const comingSoonCategories: ComingSoonCategoryDefinition[] = [
     iconName: "Shield",
     description: "Risk Management",
     blocks: insuranceBlocks,
+  },
+  {
+    id: "liquidity",
+    label: "Liquidity Provision",
+    iconName: "Droplets",
+    description: "LP Management & Rebalancing",
+    blocks: liquidityBlocks,
   },
 ];
 

@@ -215,8 +215,9 @@ export function getTokensForChain(chain: SupportedChain): TokenInfo[] {
  * Check if custom token input is allowed for a chain
  * Mainnet allows custom tokens, testnet doesn't (limited liquidity)
  */
-export function allowsCustomTokens(chain: SupportedChain): boolean {
-    return chain === SupportedChain.ARBITRUM;
+//eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function allowsCustomTokens(_chain: SupportedChain): boolean {
+    return true; // Enable custom tokens for all chains as per user request
 }
 
 // Display labels for enums
