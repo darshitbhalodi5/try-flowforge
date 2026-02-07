@@ -119,6 +119,23 @@ export const useCreateSafeWallet = () => {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+
+        if (response.status === 409) {
+          return {
+            success: false,
+            safeAddress: null,
+            error: "Safe creation is already in progress on this chain. Please wait a minute and refresh.",
+          };
+        }
+
+        if (response.status === 429) {
+          return {
+            success: false,
+            safeAddress: null,
+            error: "You have reached the limit of Safe creations for today. Please try again tomorrow.",
+          };
+        }
+
         return {
           success: false,
           safeAddress: null,
