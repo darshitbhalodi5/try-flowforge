@@ -27,7 +27,6 @@ import Safe from "@safe-global/protocol-kit";
 import { CHAIN_IDS } from "@/web3/chains";
 import {
     SwapProvider,
-    SupportedChain,
     SwapType,
     TokenInfo,
     SwapInputConfig,
@@ -36,6 +35,8 @@ import {
     CUSTOM_TOKEN_OPTION,
     CHAIN_LABELS,
 } from "@/types/swap";
+import { Chains } from "@/web3/config/chain-registry";
+import { getContractAddress } from "@/web3/config/contract-registry";
 import { API_CONFIG, buildApiUrl } from "@/config/api";
 
 interface SwapNodeConfigurationProps {
@@ -66,24 +67,8 @@ interface ExecutionState {
 }
 
 // Chains available for LiFi (same-chain or cross-chain Arbitrum ↔ Base)
-const LIFI_CHAINS: SupportedChain[] = [SupportedChain.ARBITRUM, SupportedChain.BASE];
+const LIFI_CHAINS: string[] = [Chains.ARBITRUM];
 
-// Static constants moved outside component to prevent recreation and fix useCallback deps
-const UNISWAP_ROUTER_ADDRESSES: Record<SupportedChain, string> = {
-    [SupportedChain.ARBITRUM]: '0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45',
-    [SupportedChain.ARBITRUM_SEPOLIA]: '0x101F443B4d1b059569D643917553c771E1b9663E',
-    [SupportedChain.BASE]: '',
-};
-
-// Permit2 (same on all EVM chains). For Uniswap V4, first approval is token -> Permit2.
-const PERMIT2_ADDRESS = '0x000000000022D473030F116dDEE9F6B43aC78BA3';
-
-// Universal Router for Uniswap V4 execution (must have Permit2 allowance before swap).
-const UNIVERSAL_ROUTER_ADDRESSES: Record<SupportedChain, string> = {
-    [SupportedChain.ARBITRUM]: '0xa51afafe0263b40edaef0df8781ea9aa03e381a3',
-    [SupportedChain.ARBITRUM_SEPOLIA]: '0xefd1d4bd4cf1e86da286bb4cb1b8bced9c10ba47',
-    [SupportedChain.BASE]: '',
-};
 
 const ERC20_ABI = {
     allowance: {
@@ -158,22 +143,21 @@ export function SwapNodeConfiguration({
         (nodeData.swapProvider as SwapProvider) ||
         SwapProvider.UNISWAP;
 
-    // Convert chainId to SupportedChain enum (Base 8453 used for LiFi block only)
-    const getChainFromChainId = useCallback((cid: number | null): SupportedChain => {
-        if (cid === CHAIN_IDS.ARBITRUM_SEPOLIA) return SupportedChain.ARBITRUM_SEPOLIA;
-        if (cid === 8453) return SupportedChain.BASE;
-        return SupportedChain.ARBITRUM;
+    // Convert chainId to chain string (Base 8453 used for LiFi block only)
+    const getChainFromChainId = useCallback((cid: number | null): string => {
+        if (cid === CHAIN_IDS.ARBITRUM_SEPOLIA) return Chains.ARBITRUM_SEPOLIA;
+        return Chains.ARBITRUM;
     }, []);
 
     const isLiFi = swapProvider === SwapProvider.LIFI;
 
     // For LiFi: from/to chain from node config (user selects in UI). For other providers: chain from wallet.
-    const swapChain: SupportedChain = isLiFi
-        ? ((nodeData.swapChain as SupportedChain) || SupportedChain.ARBITRUM)
-        : (chainId ? getChainFromChainId(chainId) : SupportedChain.ARBITRUM);
+    const swapChain: string = isLiFi
+        ? ((nodeData.swapChain as string) || Chains.ARBITRUM)
+        : (chainId ? getChainFromChainId(chainId) : Chains.ARBITRUM);
 
-    const swapToChain: SupportedChain | undefined = isLiFi
-        ? (nodeData.swapToChain as SupportedChain | undefined)
+    const swapToChain: string | undefined = isLiFi
+        ? (nodeData.swapToChain as string | undefined)
         : undefined;
 
     // Local state for advanced options visibility
@@ -718,8 +702,8 @@ export function SwapNodeConfiguration({
             // Uniswap V4: first approval is token -> Permit2; others use router for allowance
             const routerAddress =
                 swapProvider === SwapProvider.UNISWAP_V4
-                    ? PERMIT2_ADDRESS
-                    : UNISWAP_ROUTER_ADDRESSES[swapChain];
+                    ? getContractAddress(swapChain, "permit2") ?? ""
+                    : getContractAddress(swapChain, "uniswapRouter") ?? "";
 
             // Convert amount to wei/smallest unit based on token decimals
             const amountInWei = BigInt(Math.floor(parseFloat(swapAmount) * Math.pow(10, sourceTokenDecimals)));
@@ -822,7 +806,7 @@ export function SwapNodeConfiguration({
 
             // Uniswap V4 only: Permit2 must allow Universal Router to pull the token
             if (swapProvider === SwapProvider.UNISWAP_V4) {
-                const universalRouter = UNIVERSAL_ROUTER_ADDRESSES[swapChain];
+                const universalRouter = getContractAddress(swapChain, "universalRouter") ?? "";
                 const maxUint160 = BigInt("0xffffffffffffffffffffffffffffffffffffffff");
                 const amount160 = amountInWei > maxUint160 ? maxUint160 : amountInWei;
                 const expiration = Math.floor(Date.now() / 1000) + 3600;
@@ -840,7 +824,7 @@ export function SwapNodeConfiguration({
                     method: "eth_sendTransaction",
                     params: [{
                         from: effectiveWalletAddress,
-                        to: PERMIT2_ADDRESS,
+                        to: getContractAddress(swapChain, "permit2") ?? "",
                         data: permit2ApproveData,
                     }],
                 });
@@ -1018,7 +1002,7 @@ export function SwapNodeConfiguration({
                             <Dropdown
                                 value={swapChain}
                                 onChange={(e) => {
-                                    const next = e.target.value as SupportedChain;
+                                    const next = e.target.value as string;
                                     handleDataChange({
                                         swapChain: next,
                                         sourceTokenAddress: "",
@@ -1042,7 +1026,7 @@ export function SwapNodeConfiguration({
                                 value={swapToChain ?? "__SAME__"}
                                 onChange={(e) => {
                                     const raw = e.target.value;
-                                    const next = raw === "__SAME__" ? undefined : (raw as SupportedChain);
+                                    const next = raw === "__SAME__" ? undefined : (raw as string);
                                     handleDataChange({
                                         swapToChain: next,
                                         destinationTokenAddress: "",
@@ -1069,8 +1053,8 @@ export function SwapNodeConfiguration({
                         {isLiFi ? "1. Select Tokens" : "1. Select Tokens"}
                     </Typography>
                     {!isLiFi && (
-                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full shrink-0 ${swapChain === SupportedChain.ARBITRUM_SEPOLIA ? "bg-amber-500/15 text-amber-400" : "bg-emerald-500/15 text-emerald-400"}`}>
-                            {swapChain === SupportedChain.ARBITRUM_SEPOLIA ? "Testnet" : "Mainnet"}
+                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full shrink-0 ${swapChain === Chains.ARBITRUM_SEPOLIA ? "bg-amber-500/15 text-amber-400" : "bg-emerald-500/15 text-emerald-400"}`}>
+                            {swapChain === Chains.ARBITRUM_SEPOLIA ? "Testnet" : "Mainnet"}
                         </span>
                     )}
                     {isLiFi && (
@@ -1277,7 +1261,7 @@ export function SwapNodeConfiguration({
                             Execute Swap (Test)
                         </Typography>
                         <Typography variant="bodySmall" className="text-muted-foreground">
-                            Run swap on {swapChain === SupportedChain.ARBITRUM_SEPOLIA ? "Sepolia" : "Mainnet"} with your embedded wallet
+                            Run swap on {swapChain === Chains.ARBITRUM_SEPOLIA ? "Sepolia" : "Mainnet"} with your embedded wallet
                         </Typography>
                     </div>
 
@@ -1299,7 +1283,7 @@ export function SwapNodeConfiguration({
                             ) : (
                                 <>
                                     <LuPlay className="w-4 h-4" />
-                                    Execute Swap on {swapChain === SupportedChain.ARBITRUM_SEPOLIA ? "Sepolia" : "Mainnet"}
+                                    Execute Swap on {swapChain === Chains.ARBITRUM_SEPOLIA ? "Sepolia" : "Mainnet"}
                                 </>
                             )}
                         </Button>
@@ -1316,7 +1300,7 @@ export function SwapNodeConfiguration({
                                             {executionState.approvalTxHash}
                                         </Typography>
                                         <a
-                                            href={swapChain === SupportedChain.BASE ? `https://basescan.org/tx/${executionState.approvalTxHash}` : `https://${swapChain === SupportedChain.ARBITRUM_SEPOLIA ? "sepolia." : ""}arbiscan.io/tx/${executionState.approvalTxHash}`}
+                                            href={`https://${swapChain === Chains.ARBITRUM_SEPOLIA ? "sepolia." : ""}arbiscan.io/tx/${executionState.approvalTxHash}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="text-amber-500 hover:text-amber-400 flex items-center gap-1 shrink-0"
@@ -1360,7 +1344,7 @@ export function SwapNodeConfiguration({
                                         {executionState.txHash}
                                     </Typography>
                                     <a
-                                        href={swapChain === SupportedChain.BASE ? `https://basescan.org/tx/${executionState.txHash}` : `https://${swapChain === SupportedChain.ARBITRUM_SEPOLIA ? "sepolia." : ""}arbiscan.io/tx/${executionState.txHash}`}
+                                        href={`https://${swapChain === Chains.ARBITRUM_SEPOLIA ? "sepolia." : ""}arbiscan.io/tx/${executionState.txHash}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="text-amber-500 hover:text-amber-400 flex items-center gap-1"

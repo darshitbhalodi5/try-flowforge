@@ -21,10 +21,10 @@ import {
     getProviderLabel,
     getCategoryLabel,
     type OracleProvider,
-    type OracleChain,
     type PriceFeed,
     type FeedCategory,
 } from "@/lib/oracle-api";
+import { Chains } from "@/web3/config/chain-registry";
 
 interface OracleNodeConfigurationV2Props {
     nodeData: Record<string, unknown>;
@@ -41,7 +41,7 @@ function OracleNodeConfigurationV2Inner({
 }: OracleNodeConfigurationV2Props) {
     // Extract oracle data
     const oracleProvider = (nodeData.oracleProvider as OracleProvider) || "CHAINLINK";
-    const oracleChain = (nodeData.oracleChain as OracleChain) || "ARBITRUM_SEPOLIA";
+    const oracleChain = (nodeData.oracleChain as string) || Chains.ARBITRUM_SEPOLIA;
     const selectedSymbol = (nodeData.symbol as string) || "";
     const feedName = (nodeData.feedName as string) || "";
     const aggregatorAddress = (nodeData.aggregatorAddress as string) || "";
@@ -79,7 +79,7 @@ function OracleNodeConfigurationV2Inner({
     }, [loadAvailableFeeds]);
 
     // Handle chain change
-    const handleChainChange = useCallback((chain: OracleChain) => {
+    const handleChainChange = useCallback((chain: string) => {
         handleDataChange({
             oracleChain: chain,
             // Reset feed selection when chain changes
@@ -147,9 +147,9 @@ function OracleNodeConfigurationV2Inner({
     }, [selectedSymbol, isChainlink, aggregatorAddress, priceFeedId]);
 
     // Get chain badge color
-    const getChainBadgeColor = (chain: OracleChain) => {
-        if (chain === "ARBITRUM") return "bg-green-500/20 text-green-400 border-green-500/30";
-        if (chain === "ARBITRUM_SEPOLIA") return "bg-orange-500/20 text-orange-400 border-orange-500/30";
+    const getChainBadgeColor = (chain: string) => {
+        if (chain === Chains.ARBITRUM) return "bg-green-500/20 text-green-400 border-green-500/30";
+        if (chain === Chains.ARBITRUM_SEPOLIA) return "bg-orange-500/20 text-orange-400 border-orange-500/30";
 
     };
 
@@ -206,7 +206,7 @@ function OracleNodeConfigurationV2Inner({
                         </Typography>
                     </div>
                     <div className={`px-2 py-1 rounded-md border text-xs font-medium ${getChainBadgeColor(oracleChain)}`}>
-                        {oracleChain === "ARBITRUM" ? "Mainnet" : "Testnet"}
+                        {oracleChain === Chains.ARBITRUM ? "Mainnet" : "Testnet"}
                     </div>
                 </div>
                 <Typography variant="caption" className="text-muted-foreground">
@@ -235,7 +235,7 @@ function OracleNodeConfigurationV2Inner({
                 </Typography>
 
                 <div className="grid grid-cols-1 gap-2">
-                    {(["ARBITRUM_SEPOLIA", "ARBITRUM"] as OracleChain[]).map((chain) => (
+                    {([Chains.ARBITRUM_SEPOLIA, Chains.ARBITRUM] as string[]).map((chain) => (
                         <button
                             key={chain}
                             onClick={() => handleChainChange(chain)}

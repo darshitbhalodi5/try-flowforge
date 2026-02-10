@@ -259,7 +259,7 @@ export const OnboardingSetupModal: React.FC = () => {
                                 moduleVerify: "idle",
                             }}
                             isSigning={currentSigningChain === String(chain.id)}
-                            onRetry={() => retryChain(chain.id)}
+                            onRetry={() => retryChain(chain.chainId)}
                         />
                     ))}
                 </div>

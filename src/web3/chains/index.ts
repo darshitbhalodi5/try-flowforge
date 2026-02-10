@@ -1,163 +1,130 @@
 /**
  * Centralized blockchain chain configuration and helpers.
- * All chain-specific values should live here to keep them in sync.
- * Safe addresses: per-chain env (e.g. NEXT_PUBLIC_SAFE_WALLET_FACTORY_ADDRESS_11155111)
- * falls back to single NEXT_PUBLIC_SAFE_WALLET_FACTORY_ADDRESS / NEXT_PUBLIC_SAFE_MODULE_ADDRESS.
+ *
+ * This file now DELEGATES to @/config/chain-registry.ts for almost everything.
+ * It serves as an adapter to format the registry data for viem/privy/wagmi.
  */
 
-import { arbitrum, arbitrumSepolia } from "viem/chains";
+import {
+  arbitrum,
+  arbitrumSepolia,
+  Chain,
+} from "viem/chains";
+import {
+  CHAIN_REGISTRY,
+  ChainInfo,
+  Chains as RegistryChains,
+} from "@/web3/config/chain-registry";
+import { getContractAddress } from "@/web3/config/contract-registry";
 
-export const CHAIN_IDS = {
-  ARBITRUM_SEPOLIA: 421614,
-  ARBITRUM_MAINNET: 42161,
-} as const;
-
-export type SupportedChainId = (typeof CHAIN_IDS)[keyof typeof CHAIN_IDS];
-
-export type ChainDefinition = {
-  readonly id: SupportedChainId;
-  readonly key: "testnet" | "mainnet";
-  readonly name: string;
-  readonly explorerUrl: string;
-  readonly isTestnet: boolean;
-  readonly safeWalletFactoryAddress: string;
-  readonly safeModuleAddress: string;
+// Map our internal Chain IDs (strings) to Viem Chain objects
+const VIEM_CHAIN_MAP: Record<string, Chain> = {
+  [RegistryChains.ARBITRUM]: arbitrum,
+  [RegistryChains.ARBITRUM_SEPOLIA]: arbitrumSepolia
+  // Add new chains here as they are added to registry
 };
 
-function getSafeFactoryForChain(chainId: number): string {
-  return (
-    process.env[`NEXT_PUBLIC_SAFE_WALLET_FACTORY_ADDRESS_${chainId}`] ||
-    process.env.NEXT_PUBLIC_SAFE_WALLET_FACTORY_ADDRESS ||
-    ""
-  );
-}
-function getSafeModuleForChain(chainId: number): string {
-  return (
-    process.env[`NEXT_PUBLIC_SAFE_MODULE_ADDRESS_${chainId}`] ||
-    process.env.NEXT_PUBLIC_SAFE_MODULE_ADDRESS ||
-    ""
-  );
-}
+// ─── Constants derived from Registry ─────────────────────────────────
 
-// Chain definitions with readonly properties
-const chainDefinitions: Readonly<Record<SupportedChainId, ChainDefinition>> = {
+/**
+ * Numeric Chain IDs map (e.g. { ARBITRUM: 42161, ... })
+ * Used by legacy code that expects this shape.
+ */
+export const CHAIN_IDS = CHAIN_REGISTRY.reduce((acc, chain) => {
+  // Create a key that matches the old style if possible (uppercase ID)
+  // The ID in registry is already uppercase like "ARBITRUM"
+  acc[chain.id] = chain.chainId;
+  // Also support "ARBITRUM_MAINNET" style for back-compat if needed,
+  // though "ARBITRUM" is preferred.
+  if (chain.id === RegistryChains.ARBITRUM) {
+    acc["ARBITRUM_MAINNET"] = chain.chainId;
+  }
+  return acc;
+}, {} as Record<string, number>);
 
-  [CHAIN_IDS.ARBITRUM_SEPOLIA]: {
-    id: CHAIN_IDS.ARBITRUM_SEPOLIA,
-    key: "testnet",
-    name: "Arbitrum Sepolia",
-    explorerUrl: "https://sepolia.arbiscan.io",
-    isTestnet: true,
-    safeWalletFactoryAddress: getSafeFactoryForChain(CHAIN_IDS.ARBITRUM_SEPOLIA),
-    safeModuleAddress: getSafeModuleForChain(CHAIN_IDS.ARBITRUM_SEPOLIA),
-  },
-  [CHAIN_IDS.ARBITRUM_MAINNET]: {
-    id: CHAIN_IDS.ARBITRUM_MAINNET,
-    key: "mainnet",
-    name: "Arbitrum Mainnet",
-    explorerUrl: "https://arbiscan.io",
-    isTestnet: false,
-    safeWalletFactoryAddress: getSafeFactoryForChain(CHAIN_IDS.ARBITRUM_MAINNET),
-    safeModuleAddress: getSafeModuleForChain(CHAIN_IDS.ARBITRUM_MAINNET),
-  },
+export type SupportedChainId = number;
+
+export type ChainDefinition = ChainInfo & {
+  key: "testnet" | "mainnet";
+  safeWalletFactoryAddress: string;
+  safeModuleAddress: string;
 };
 
-// Pre-computed arrays (allocated once at module load)
-export const USE_TESTNET_ONLY = process.env.NEXT_PUBLIC_USE_TESTNET_ONLY === "true";
+// ─── Exported Lists ──────────────────────────────────────────────────
 
-const ALL_CHAINS: ChainDefinition[] = [
-  chainDefinitions[CHAIN_IDS.ARBITRUM_SEPOLIA],
-  chainDefinitions[CHAIN_IDS.ARBITRUM_MAINNET],
-].filter(chain => !USE_TESTNET_ONLY || chain.isTestnet);
+export const USE_TESTNET_ONLY =
+  process.env.NEXT_PUBLIC_USE_TESTNET_ONLY === "true";
 
-const PRIVY_CHAINS_ALL = [arbitrumSepolia, arbitrum].filter(chain => {
-  if (!USE_TESTNET_ONLY) return true;
-  return chain.id === CHAIN_IDS.ARBITRUM_SEPOLIA;
-});
+/**
+ * All chains formatted as ChainDefinitions for internal app use
+ */
+export const ALL_CHAINS: ChainDefinition[] = CHAIN_REGISTRY.map((chain) => ({
+  ...chain,
+  key: (chain.isTestnet ? "testnet" : "mainnet") as "testnet" | "mainnet",
 
-// Re-export viem chains
+  safeWalletFactoryAddress: getContractAddress(chain.id, "safeWalletFactory") || "",
+  safeModuleAddress: getContractAddress(chain.id, "safeModule") || "",
+})).filter((chain) => !USE_TESTNET_ONLY || chain.isTestnet);
+
+/**
+ * Viem chains for Wagmi/Privy config
+ */
+export const VIEM_CHAINS: Chain[] = ALL_CHAINS.map((c) => VIEM_CHAIN_MAP[c.id]).filter(
+  (c): c is Chain => !!c,
+);
+
+// Re-export specific chains for convenience if needed
 export { arbitrum, arbitrumSepolia };
-export const VIEM_CHAINS = PRIVY_CHAINS_ALL;
 
-/**
- * Type guard for supported chain IDs
- */
-export function isSupportedChain(chainId: number): chainId is SupportedChainId {
-  return (
-    chainId === CHAIN_IDS.ARBITRUM_SEPOLIA ||
-    chainId === CHAIN_IDS.ARBITRUM_MAINNET
-  );
+// ─── Utility Functions ───────────────────────────────────────────────
+
+export function isSupportedChain(chainId: number): boolean {
+  return ALL_CHAINS.some((c) => c.chainId === chainId);
 }
 
-/**
- * Get chain name, with fallback for unknown chains
- */
 export function getChainName(chainId: number): string {
-  return (
-    chainDefinitions[chainId as SupportedChainId]?.name ?? `Chain ${chainId}`
-  );
+  return ALL_CHAINS.find((c) => c.chainId === chainId)?.name ?? `Chain ${chainId}`;
 }
 
-/**
- * Get chains available for user selection (all three supported chains)
- */
 export function getSelectableChains(): ChainDefinition[] {
   return ALL_CHAINS;
 }
 
-/**
- * Check if chain ID is testnet
- */
 export function isTestnet(chainId: number | null | undefined): boolean {
-  return chainId === CHAIN_IDS.ARBITRUM_SEPOLIA;
+  if (!chainId) return false;
+  return ALL_CHAINS.find((c) => c.chainId === chainId)?.isTestnet ?? false;
 }
 
-/**
- * Check if chain ID is mainnet
- */
 export function isMainnet(chainId: number | null | undefined): boolean {
-  return chainId === CHAIN_IDS.ARBITRUM_MAINNET;
+  if (!chainId) return false;
+  return !isTestnet(chainId);
 }
 
 /**
- * Get target chain ID for network switching
+ * Get target chain ID for network switching.
+ * Defaults to Arbitrum Sepolia (testnet) or Arbitrum One (mainnet).
  */
 export function getTargetChainId(toTestnet: boolean): number {
-  return toTestnet ? CHAIN_IDS.ARBITRUM_SEPOLIA : CHAIN_IDS.ARBITRUM_MAINNET;
+  if (toTestnet) {
+    return (
+      CHAIN_IDS[RegistryChains.ARBITRUM_SEPOLIA] || 421614
+    );
+  }
+  return CHAIN_IDS[RegistryChains.ARBITRUM] || 42161;
 }
 
-/**
- * Get default chain for Privy. Always Arbitrum Sepolia so it is selected by default.
- */
 export function getDefaultChainForPrivy() {
   return arbitrumSepolia;
 }
 
-/**
- * Get supported chains for Privy (all three: Arb Sepolia, ETH Sepolia, Arb Mainnet)
- */
 export function getSupportedChainsForPrivy() {
-  return PRIVY_CHAINS_ALL;
+  return VIEM_CHAINS;
 }
 
-/**
- * Get Safe wallet factory address for a chain
- */
 export function getSafeWalletFactoryAddress(chainId: number): string {
-  const info = chainDefinitions[chainId as SupportedChainId];
-  if (!info) {
-    return "";
-  }
-  return info.safeWalletFactoryAddress;
+  return ALL_CHAINS.find((c) => c.chainId === chainId)?.safeWalletFactoryAddress ?? "";
 }
 
-/**
- * Get Safe module address for a chain
- */
 export function getSafeModuleAddress(chainId: number): string {
-  const info = chainDefinitions[chainId as SupportedChainId];
-  if (!info) {
-    return "";
-  }
-  return info.safeModuleAddress;
+  return ALL_CHAINS.find((c) => c.chainId === chainId)?.safeModuleAddress ?? "";
 }

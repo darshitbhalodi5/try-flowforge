@@ -1,15 +1,15 @@
 import type { BlockDefinition } from "../../types";
+import { Chains } from "@/web3/config/chain-registry";
 import {
     LendingProvider,
     LendingOperation,
     InterestRateMode,
-    SupportedChain,
 } from "@/types/lending";
 
 /**
  * Aave Lending Block Definition
  * Allows users to supply, withdraw, borrow, and repay via Aave V3
- * Available on Arbitrum Mainnet
+ * Supports: Arbitrum only
  */
 export const aaveBlock: BlockDefinition = {
     id: "aave",
@@ -20,6 +20,7 @@ export const aaveBlock: BlockDefinition = {
     nodeType: "aave",
     backendType: "LENDING",
     sharedConfigComponent: "lending",
+    supportedChains: [Chains.ARBITRUM],
     configComponentProps: {
         requiresAuth: true,
     },
@@ -29,7 +30,7 @@ export const aaveBlock: BlockDefinition = {
         status: "idle" as const,
         // Fixed provider for this block
         lendingProvider: LendingProvider.AAVE,
-        lendingChain: SupportedChain.ARBITRUM, // Only Arbitrum mainnet
+        lendingChain: Chains.ARBITRUM,
         lendingOperation: LendingOperation.SUPPLY,
         // Asset configuration
         assetAddress: "",
@@ -37,7 +38,7 @@ export const aaveBlock: BlockDefinition = {
         assetDecimals: 18,
         // Amount
         lendingAmount: "",
-        // Interest rate mode (for borrow/repay)
+        // Interest rate mode
         interestRateMode: InterestRateMode.VARIABLE,
         // Execution settings
         simulateFirst: true,

@@ -17,14 +17,14 @@ import {
 } from "react-icons/lu";
 import {
     OracleProvider,
-    OracleChain,
     CHAINLINK_PRICE_FEEDS,
     PYTH_PRICE_FEEDS,
     getChainlinkFeedsForChain,
     isValidEthereumAddress,
     isValidPythFeedId,
-    ORACLE_CHAIN_LABELS,
+    CHAIN_LABELS,
 } from "@/types/oracle";
+import { Chains } from "@/web3/config/chain-registry";
 import { cn } from "@/lib/utils";
 
 interface OracleNodeConfigurationProps {
@@ -44,7 +44,7 @@ function OracleNodeConfigurationInner({
 
     // Extract oracle data
     const oracleProvider = (nodeData.oracleProvider as OracleProvider) || OracleProvider.CHAINLINK;
-    const oracleChain = (nodeData.oracleChain as OracleChain) || OracleChain.ARBITRUM_SEPOLIA;
+    const oracleChain = (nodeData.oracleChain as string) || Chains.ARBITRUM_SEPOLIA;
     const aggregatorAddress = (nodeData.aggregatorAddress as string) || "";
     const priceFeedId = (nodeData.priceFeedId as string) || "";
     const selectedPriceFeed = (nodeData.selectedPriceFeed as string) || "";
@@ -76,7 +76,7 @@ function OracleNodeConfigurationInner({
         : priceFeedId && !feedIdError;
 
     // Handle chain change
-    const handleChainChange = useCallback((chain: OracleChain) => {
+    const handleChainChange = useCallback((chain: string) => {
         handleDataChange({
             oracleChain: chain,
             selectedPriceFeed: "",
@@ -150,7 +150,7 @@ function OracleNodeConfigurationInner({
                 </div>
 
                 <div className="grid grid-cols-1 gap-2">
-                    {Object.values(OracleChain).map((chain) => {
+                    {[Chains.ARBITRUM, Chains.ARBITRUM_SEPOLIA].map((chain) => {
                         const isSelected = oracleChain === chain;
                         return (
                             <button
@@ -171,7 +171,7 @@ function OracleNodeConfigurationInner({
                                         <LuNetwork className="w-4 h-4" />
                                     </div>
                                     <span className="text-sm font-semibold tracking-tight">
-                                        {ORACLE_CHAIN_LABELS[chain]}
+                                        {CHAIN_LABELS[chain]}
                                     </span>
                                 </div>
                                 {isSelected && <LuCircleCheck className="w-4 h-4" />}

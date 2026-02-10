@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePrivy } from '@privy-io/react-auth';
 import { usePrivyWallet } from '@/hooks/usePrivyWallet';
 import { useEnsSubdomain } from '@/hooks/useEnsSubdomain';
-import { CHAIN_IDS, USE_TESTNET_ONLY } from '@/web3/chains';
+import { getSelectableChains, isTestnet, ChainDefinition } from '@/web3/chains';
 import { Avatar } from './Avatar';
 import { ClaimEnsSubdomainModal } from '../ens/ClaimEnsSubdomainModal';
 import { Switch } from './Switch';
@@ -209,71 +209,46 @@ export function UserMenu() {
               <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Networks</span>
             </div>
 
-            {/* Arbitrum One */}
-            {!USE_TESTNET_ONLY && (
-              <div className="w-full px-4 py-2 space-y-1">
-                <div className="flex items-center gap-3 text-sm font-medium text-white/70">
-                  <span className="flex-1">Arbitrum One</span>
-                  <Switch
-                    checked={currentChainId === CHAIN_IDS.ARBITRUM_MAINNET}
-                    onCheckedChange={(checked) =>
-                      handleNetworkSwitch(checked ? CHAIN_IDS.ARBITRUM_MAINNET : CHAIN_IDS.ARBITRUM_SEPOLIA)
-                    }
-                    gradient={gradient}
-                  />
-                </div>
-                <div className="flex items-center gap-2 pl-1">
-                  <div className="text-[10px] font-mono text-white/30 truncate flex-1">
-                    {profile?.safe_wallet_address_mainnet ? (
-                      <span className="flex items-center gap-1">
-                        <HiOutlineShieldCheck className="w-3 h-3 text-white/20" />
-                        {profile.safe_wallet_address_mainnet}
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-1 opacity-50">
-                        <HiOutlineShieldCheck className="w-3 h-3" />
-                        -
-                      </span>
+            {/* Dynamic Network Selector */}
+            {getSelectableChains().map((chain: ChainDefinition) => {
+              const isChainTestnet = isTestnet(chain.chainId);
+              const safeAddress = isChainTestnet
+                ? profile?.safe_wallet_address_testnet
+                : profile?.safe_wallet_address_mainnet;
+
+              return (
+                <div key={chain.id} className="w-full px-4 py-2 space-y-1">
+                  <div className="flex items-center gap-3 text-sm font-medium text-white/70">
+                    <span className="flex-1">{chain.name}</span>
+                    <Switch
+                      checked={currentChainId === chain.chainId}
+                      onCheckedChange={(checked) => {
+                        if (checked) handleNetworkSwitch(chain.chainId);
+                      }}
+                      gradient={gradient}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 pl-1">
+                    <div className="text-[10px] font-mono text-white/30 truncate flex-1">
+                      {safeAddress ? (
+                        <span className="flex items-center gap-1">
+                          <HiOutlineShieldCheck className="w-3 h-3 text-white/20" />
+                          {safeAddress}
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 opacity-50">
+                          <HiOutlineShieldCheck className="w-3 h-3" />
+                          -
+                        </span>
+                      )}
+                    </div>
+                    {safeAddress && (
+                      <CopyButton text={safeAddress} size="sm" />
                     )}
                   </div>
-                  {profile?.safe_wallet_address_mainnet && (
-                    <CopyButton text={profile.safe_wallet_address_mainnet} size="sm" />
-                  )}
                 </div>
-              </div>
-            )}
-
-            {/* Arbitrum Sepolia */}
-            <div className="w-full px-4 py-2 space-y-1">
-              <div className="flex items-center gap-3 text-sm font-medium text-white/70">
-                <span className="flex-1">Arbitrum Sepolia</span>
-                <Switch
-                  checked={currentChainId === CHAIN_IDS.ARBITRUM_SEPOLIA}
-                  onCheckedChange={(checked) =>
-                    handleNetworkSwitch(checked ? CHAIN_IDS.ARBITRUM_SEPOLIA : CHAIN_IDS.ARBITRUM_MAINNET)
-                  }
-                  gradient={gradient}
-                />
-              </div>
-              <div className="flex items-center gap-2 pl-1">
-                <div className="text-[10px] font-mono text-white/30 truncate flex-1">
-                  {profile?.safe_wallet_address_testnet ? (
-                    <span className="flex items-center gap-1">
-                      <HiOutlineShieldCheck className="w-3 h-3 text-white/20" />
-                      {profile.safe_wallet_address_testnet}
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-1 opacity-50">
-                      <HiOutlineShieldCheck className="w-3 h-3" />
-                      -
-                    </span>
-                  )}
-                </div>
-                {profile?.safe_wallet_address_testnet && (
-                  <CopyButton text={profile.safe_wallet_address_testnet} size="sm" />
-                )}
-              </div>
-            </div>
+              );
+            })}
           </div>
 
           {/* Divider */}
