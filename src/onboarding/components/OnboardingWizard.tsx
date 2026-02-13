@@ -8,6 +8,8 @@ import { WalletChoiceStep } from "./steps/WalletChoiceStep";
 import { ChainSelectionStep } from "./steps/ChainSelectionStep";
 import { SetupExecutionStep } from "./steps/SetupExecutionStep";
 import { FaTimes } from "react-icons/fa";
+import { TbFidgetSpinner } from "react-icons/tb";
+import { usePrivy } from "@privy-io/react-auth";
 
 const backdropVariants = {
     hidden: { opacity: 0 },
@@ -57,6 +59,7 @@ export const OnboardingWizard: React.FC = () => {
         toggleMinimize,
         dismissOnboarding,
     } = useOnboarding();
+    const { authenticated } = usePrivy();
 
     const steps = useMemo(
         () => [
@@ -79,10 +82,10 @@ export const OnboardingWizard: React.FC = () => {
         prevStepRef.current = stepIndex;
     }, [stepIndex]);
 
-    // Don't render anything if not needed / checking / minimized / complete
+    // Show immediately if authenticated and either needs onboarding or is still checking
     const shouldShow =
-        !isCheckingUser &&
-        needsOnboarding &&
+        authenticated &&
+        (isCheckingUser || needsOnboarding) &&
         currentStep !== "complete" &&
         !isMinimized;
 
@@ -113,6 +116,33 @@ export const OnboardingWizard: React.FC = () => {
     };
 
     const renderStep = () => {
+        if (isCheckingUser) {
+            return (
+                <div className="flex-1 flex flex-col items-center justify-center py-20 text-center">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="flex flex-col items-center gap-6"
+                    >
+                        <div className="relative">
+                            <motion.div
+                                className="absolute inset-0 bg-primary/20 blur-xl rounded-full"
+                                animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
+                                transition={{ duration: 2, repeat: Infinity }}
+                            />
+                            <TbFidgetSpinner className="w-12 h-12 text-primary animate-spin relative z-10" />
+                        </div>
+                        <div className="space-y-2">
+                            <h3 className="text-xl font-bold text-foreground">Initialising Experience</h3>
+                            <p className="text-sm text-muted-foreground max-w-[280px]">
+                                Synchronizing your account status and infrastructure across networks...
+                            </p>
+                        </div>
+                    </motion.div>
+                </div>
+            );
+        }
+
         switch (currentStep) {
             case "wallet":
                 return <WalletChoiceStep />;

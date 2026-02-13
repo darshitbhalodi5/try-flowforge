@@ -64,6 +64,7 @@ interface OnboardingContextType {
     setChainSelectionDone: (value: boolean) => void;
     setSelectedChains: (chains: ChainInfo[]) => void;
     saveUserChains: (chains: string[]) => Promise<void>;
+    userRecord: UserData | null;
 
     setWalletChoiceCompleted: (value: boolean) => void;
     startOnboarding: () => Promise<void>;
@@ -136,8 +137,8 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({
     const [isChainSelectionDone, setChainSelectionDone] = useState(false);
 
     // True once the early "does user exist?" check has finished
+    const [userRecord, setUserRecord] = useState<UserData | null>(null);
     const [initialCheckDone, setInitialCheckDone] = useState(false);
-
     const prevAuthRef = useRef(false);
 
     const hasError = useMemo(() => {
@@ -250,69 +251,98 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({
     }, [authenticated, getPrivyAccessToken]);
 
 
-    // Early user-existence check
+    // Unified User status & Onboarding detection loop
     useEffect(() => {
         const justLoggedOut = !authenticated && prevAuthRef.current;
         prevAuthRef.current = authenticated;
 
-        console.log("[OnboardingContext] Auth state change:", { authenticated, ready, justLoggedOut });
-
         if (justLoggedOut || !authenticated) {
-            console.log("[OnboardingContext] Resetting state (logout/not-auth)");
             setWalletChoiceCompletedState(false);
             setChainSelectionDone(false);
-            setInitialCheckDone(false);
             setNeedsOnboarding(false);
             setIsOnboarding(false);
+            setUserRecord(null);
+            setInitialCheckDone(false);
             setCurrentStep("wallet");
             return;
         }
 
-        if (!ready) return;
+        if (!ready || isModeValid === null) return;
 
         let cancelled = false;
 
         (async () => {
-            console.log("[OnboardingContext] Starting initial user check...");
+            setIsCheckingUser(true);
             try {
                 const user = await fetchUserData();
                 if (cancelled) return;
+                setUserRecord(user);
 
-                console.log("[OnboardingContext] Initial check result:", user ? "Found User" : "No User (New)");
-
+                // Phase 2: Handle Returning User logic (Skip steps if already exists)
                 if (user) {
-                    // Returning user with a backend record → skip wallet choice
                     setWalletChoiceCompletedState(true);
 
-                    // Restore selected chains if available
+                    // Restore chains if they exist
                     if (user.selected_chains && user.selected_chains.length > 0) {
-                        // selected_chains are string IDs (e.g. "ARBITRUM_SEPOLIA")
-                        const allChains = await validateAndGetOnboardingChains().then(res => res.chains).catch(() => []);
+                        const { chains: allChains } = await validateAndGetOnboardingChains().catch(() => ({ chains: [] }));
                         const restoredChains = allChains.filter(c => user.selected_chains?.includes(c.id));
 
                         if (restoredChains.length > 0) {
                             setChainsToSetup(restoredChains);
                             setProgress(initializeProgress(restoredChains));
                             setChainSelectionDone(true);
-                        } else {
-                            // Fallback if mismatch
-                            setChainSelectionDone(false);
                         }
-                    } else {
-                        // New schema user but hasn't selected chains, or old user
-                        setChainSelectionDone(false);
                     }
                 }
-                // null → new user, walletChoiceCompleted stays false
+
+                // Phase 3: Detailed Onboarding Necessity Check
+                if (!user) {
+                    // Brand new user needs wallet choice & full setup
+                    setNeedsOnboarding(true);
+                } else {
+                    // Check if any wallets are missing
+                    const chainsToValidate = chainsToSetup.length > 0 ? chainsToSetup : (await validateAndGetOnboardingChains().catch(() => ({ chains: [] }))).chains;
+
+                    const chainsNeedingSetup = chainsToValidate.filter((chain) => {
+                        const c = getChain(chain.chainId);
+                        return !user?.safe_wallets?.[String(c?.chainId || chain.chainId)];
+                    });
+
+                    if (chainsNeedingSetup.length > 0) {
+                        setNeedsOnboarding(true);
+                        // Pre-fill existing progress
+                        setProgress((prev) => {
+                            const updated = { ...prev };
+                            for (const chain of chainsToValidate) {
+                                const c = getChain(chain.chainId);
+                                if (user?.safe_wallets?.[String(c?.chainId || chain.chainId)]) {
+                                    updated[chain.id] = {
+                                        walletCreate: "success",
+                                        moduleSign: "success",
+                                        moduleEnable: "success",
+                                        moduleVerify: "success",
+                                    };
+                                }
+                            }
+                            return updated;
+                        });
+                    } else {
+                        setNeedsOnboarding(false);
+                    }
+                }
             } catch (err) {
-                console.error("[OnboardingContext] Initial check error:", err);
+                console.error("[OnboardingContext] Initialization error:", err);
+                setNeedsOnboarding(true); // Default to showing it on error
             } finally {
-                if (!cancelled) setInitialCheckDone(true);
+                if (!cancelled) {
+                    setIsCheckingUser(false);
+                    setInitialCheckDone(true);
+                }
             }
         })();
 
         return () => { cancelled = true; };
-    }, [ready, authenticated, fetchUserData]);
+    }, [ready, authenticated, isModeValid, fetchUserData]);
 
     // Validate mode on mount
     useEffect(() => {
@@ -542,90 +572,6 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({
         ]
     );
 
-    // Check if user needs onboarding
-    useEffect(() => {
-        console.log("[OnboardingContext] checking needsOnboarding dependencies:", {
-            ready, authenticated, walletAddress, isModeValid
-        });
-
-        if (
-            !ready ||
-            !authenticated ||
-            isModeValid !== true
-        ) {
-
-            // Only force reset if logged out
-            if (!authenticated) {
-                setNeedsOnboarding(false);
-            }
-            return;
-        }
-
-        const checkUser = async () => {
-            setIsCheckingUser(true);
-            console.log("[OnboardingContext] Checking if onboarding needed...");
-            try {
-                const user = await fetchUserData();
-                console.log("[OnboardingContext] NeedsOnboarding check user result:", user);
-
-                // New user (no backend record yet) → needs onboarding
-                if (user === null) {
-                    console.log("[OnboardingContext] User is null -> Needs onboarding");
-                    setNeedsOnboarding(true);
-                    return;
-                }
-
-                // Existing user – check which chains still need Safe/module setup
-                const chainsNeedingSetup = chainsToSetup.filter((chain) => {
-                    const c = getChain(chain.chainId);
-                    if (!c) return true;
-                    // Check if wallet exists for this chain
-                    return !user?.safe_wallets?.[String(c.chainId)];
-                });
-
-                console.log("[OnboardingContext] Chains needing setup:", chainsNeedingSetup.length);
-
-                if (chainsNeedingSetup.length > 0) {
-                    setNeedsOnboarding(true);
-                    // Pre-fill progress for existing wallets
-                    setProgress((prev) => {
-                        const updated = { ...prev };
-                        for (const chain of chainsToSetup) {
-                            const c = getChain(chain.chainId);
-                            // Check if wallet exists for this chain
-                            const hasWallet = user?.safe_wallets?.[String(c?.chainId || chain.chainId)];
-
-                            if (hasWallet) {
-                                updated[chain.id] = {
-                                    walletCreate: "success",
-                                    moduleSign: "success",
-                                    moduleEnable: "success",
-                                    moduleVerify: "success",
-                                };
-                            }
-                        }
-                        return updated;
-                    });
-                } else {
-                    setNeedsOnboarding(false);
-                }
-            } catch (err) {
-                console.error("[OnboardingContext] NeedsOnboarding check error:", err);
-                setNeedsOnboarding(true);
-            } finally {
-                setIsCheckingUser(false);
-            }
-        };
-
-        checkUser();
-    }, [
-        ready,
-        authenticated,
-        fetchUserData,
-        chainsToSetup,
-        isModeValid,
-    ]);
-
     // Start the onboarding process (one run per click; use Retry on a chain to retry that chain only)
     const startOnboarding = useCallback(async () => {
         if (isOnboarding) return;
@@ -731,6 +677,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({
             setChainSelectionDone,
             setSelectedChains,
             saveUserChains,
+            userRecord,
             isMinimized,
             overallStatus,
             hasError,
@@ -765,6 +712,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({
             setChainSelectionDone,
             setSelectedChains,
             saveUserChains,
+            userRecord,
             currentStep,
             goToStep,
             completeStep
