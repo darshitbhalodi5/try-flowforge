@@ -15,7 +15,14 @@ export function OnboardingProgressIndicator() {
         expandWizard,
     } = useOnboarding();
 
+    const [prevStatus, setPrevStatus] = useState(overallStatus);
     const [dismissed, setDismissed] = useState(false);
+
+    // Reset dismissal when status changes away from complete
+    if (overallStatus !== prevStatus) {
+        setPrevStatus(overallStatus);
+        setDismissed(false);
+    }
 
     // Map step to number
     const stepNumber =
@@ -32,8 +39,6 @@ export function OnboardingProgressIndicator() {
         if (overallStatus === "complete") {
             const timer = setTimeout(() => setDismissed(true), 3000);
             return () => clearTimeout(timer);
-        } else {
-            setDismissed(false);
         }
     }, [overallStatus]);
 

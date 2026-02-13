@@ -5,8 +5,6 @@ import {
     ChainProgress,
     ChainConfig,
 } from "@/onboarding/context/OnboardingContext";
-import { usePrivyWallet } from "@/hooks/usePrivyWallet";
-import { getChain } from "@/web3/config/chain-registry";
 import { TbFidgetSpinner } from "react-icons/tb";
 import {
     FaCheckCircle,
@@ -273,7 +271,6 @@ export const SetupExecutionStep = () => {
         completeStep
     } = useOnboarding();
 
-    const { chainId } = usePrivyWallet();
     const hasAutoStartedRef = useRef(false);
 
     // Calculate completion status

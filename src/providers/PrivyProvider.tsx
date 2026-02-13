@@ -1,7 +1,7 @@
 "use client";
 
 import { PrivyProvider } from "@privy-io/react-auth";
-import { SUPPORTED_VIEM_CHAINS, Chains, getChain } from "@/web3/config/chain-registry";
+import { SUPPORTED_VIEM_CHAINS } from "@/web3/config/chain-registry";
 
 export default function PrivyAuthProvider({ children }: { children: React.ReactNode }) {
     // Get Privy App ID from environment variable

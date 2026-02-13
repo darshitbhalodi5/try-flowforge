@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useOnboarding } from "@/onboarding/context/OnboardingContext";
 import { WizardStepper } from "./WizardStepper";
@@ -75,12 +75,14 @@ export const OnboardingWizard: React.FC = () => {
         [currentStep, steps]
     );
 
-    // Previous step index for animation direction
-    const prevStepRef = React.useRef(stepIndex);
-    const direction = stepIndex >= prevStepRef.current ? 1 : -1;
-    React.useEffect(() => {
-        prevStepRef.current = stepIndex;
-    }, [stepIndex]);
+    // Track step history for animation direction
+    const [stepHistory, setStepHistory] = useState({ prev: stepIndex, current: stepIndex });
+
+    if (stepIndex !== stepHistory.current) {
+        setStepHistory({ prev: stepHistory.current, current: stepIndex });
+    }
+
+    const direction = stepIndex >= stepHistory.prev ? 1 : -1;
 
     // Show immediately if authenticated and either needs onboarding or is still checking
     const shouldShow =

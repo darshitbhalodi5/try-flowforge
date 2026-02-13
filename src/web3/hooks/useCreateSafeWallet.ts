@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { usePrivyWallet } from "@/hooks/usePrivyWallet";
 import { ethers } from "ethers";
 import { getContractAddress } from "@/web3/config/contract-registry";
@@ -371,7 +371,7 @@ export const useCreateSafeWallet = () => {
               error: `Chain mismatch: Wallet is on chain ${actualNum} but transaction was signed for chain ${txChainId}. Please switch back.`,
             };
           }
-        } catch (err) {
+        } catch {
           // If we can't verify but have a reactive mismatch, still fail
           if (chainId && chainId !== txChainId) {
             return {

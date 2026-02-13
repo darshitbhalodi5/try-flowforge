@@ -10,7 +10,7 @@ import React, {
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { usePrivyWallet } from "@/hooks/usePrivyWallet";
 import { useCreateSafeWallet } from "@/web3/hooks/useCreateSafeWallet";
-import { API_CONFIG, buildApiUrl } from "@/config/api";
+import { API_CONFIG } from "@/config/api";
 import { ChainInfo, getChain } from "@/web3/config/chain-registry";
 import { validateAndGetOnboardingChains } from "../utils/config";
 import { ensureChainSelected, waitForChain } from "../utils/chain-switcher";
@@ -111,8 +111,6 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({
     const {
         walletAddress,
         ethereumProvider,
-        wallet,
-        chainId,
         getPrivyAccessToken
     } = usePrivyWallet();
     const { signEnableModule, submitEnableModule, createSafeWallet } = useCreateSafeWallet();
@@ -342,7 +340,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({
         })();
 
         return () => { cancelled = true; };
-    }, [ready, authenticated, isModeValid, fetchUserData]);
+    }, [ready, authenticated, isModeValid, fetchUserData, chainsToSetup]);
 
     // Validate mode on mount
     useEffect(() => {
@@ -564,10 +562,8 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({
             createSafeWallet,
             signEnableModule,
             submitEnableModule,
-            wallet,
             ethereumProvider,
             walletAddress,
-            chainId,
             wallets,
         ]
     );
