@@ -11,6 +11,7 @@ import { WalletCreationFlowCard } from "./components/WalletCreationFlowCard";
 import { WalletModuleStatusCard } from "./components/WalletModuleStatusCard";
 import { WalletNetworkSelectionCard } from "./components/WalletNetworkSelectionCard";
 import { WalletSafeInfoCard } from "./components/WalletSafeInfoCard";
+import { WalletFundingCard } from "./components/WalletFundingCard";
 import { WalletSetupProgressCard } from "./components/WalletSetupProgressCard";
 import {
   getChainProgress,
@@ -207,6 +208,8 @@ function WalletNodeConfigurationInner() {
       />
 
       <WalletSafeInfoCard address={address} selection={selection} />
+
+      <WalletFundingCard selection={selection} />
 
       {selection.selectedSafe && (
         <WalletModuleStatusCard selection={selection} />
