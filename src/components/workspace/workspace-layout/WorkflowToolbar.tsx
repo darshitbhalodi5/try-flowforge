@@ -135,7 +135,13 @@ export const WorkflowToolbar = React.memo(function WorkflowToolbar({
         </button>
 
         {/* Workflow Title - Editable */}
-        <div className="relative flex items-center justify-start rounded-full border border-white/20 px-4 h-[44px] group hover:border-white/30 transition-all duration-300 w-[300px]">
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => !isEditing && handleStartEdit()}
+          onKeyDown={(e) => !isEditing && (e.key === "Enter" || e.key === " ") && (e.preventDefault(), handleStartEdit())}
+          className={`relative flex items-center justify-start rounded-full border border-white/20 px-4 h-[44px] group hover:border-white/30 transition-all duration-300 w-[300px] ${!isEditing ? "cursor-text" : ""}`}
+        >
           {isEditing ? (
             <input
               ref={inputRef}
@@ -144,17 +150,21 @@ export const WorkflowToolbar = React.memo(function WorkflowToolbar({
               onChange={(e) => setEditedName(e.target.value)}
               onBlur={handleSaveName}
               onKeyDown={handleKeyDown}
-              className="bg-transparent border-none outline-none text-sm font-semibold text-white placeholder:text-white/50 w-full"
+              onClick={(e) => e.stopPropagation()}
+              className="absolute inset-0 w-full h-full bg-transparent border-none outline-none text-sm font-semibold text-white placeholder:text-white/50 rounded-full pl-4 pr-12 cursor-text"
               placeholder="Enter workflow name"
             />
           ) : (
-            <h2 className="text-sm font-semibold text-white truncate min-w-0">
+            <h2 className="text-sm font-semibold text-white truncate min-w-0 flex-1 pr-10">
               {workflowName}
             </h2>
           )}
 
           <Button
-            onClick={handleStartEdit}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleStartEdit();
+            }}
             className="absolute right-0 p-0! w-[42px]! h-[42px]!"
             title="Edit workflow name"
             aria-label="Edit workflow name"
