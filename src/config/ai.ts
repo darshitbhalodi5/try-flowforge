@@ -9,7 +9,7 @@ export interface AiModelConfig {
   /** Internal model identifier used by the LLM service */
   id: string;
   /** Provider identifier */
-  provider: "openrouter" | "openai";
+  provider: "openrouter" | "openai" | "eigencloud";
   /** Human readable name */
   displayName: string;
   /** Model name passed to the LLM service */
@@ -74,6 +74,26 @@ const AI_MODEL_CONFIG_BY_MODEL: Record<string, AiModelConfig> = {
     model: "gpt-4o-mini",
     temperature: 0.7,
     maxOutputTokens: 16384,
+  },
+
+  // EigenAI GPT-OSS 120B
+  "eigencloud:gpt-oss": {
+    id: "eigencloud-gpt-oss",
+    provider: "eigencloud",
+    displayName: "EigenAI GPT-OSS 120B",
+    model: "gpt-oss-120b-f16",
+    temperature: 0.7,
+    maxOutputTokens: 4096,
+  },
+
+  // EigenAI Qwen3 32B
+  "eigencloud:qwen3": {
+    id: "eigencloud-qwen3",
+    provider: "eigencloud",
+    displayName: "EigenAI Qwen3 32B",
+    model: "qwen3-32b-128k-bf16",
+    temperature: 0.7,
+    maxOutputTokens: 4096,
   },
 };
 

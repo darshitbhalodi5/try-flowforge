@@ -79,7 +79,7 @@ export type StartNodeData = BaseNodeData;
 
 // AI Transform Node Data
 export interface AiTransformNodeData extends BaseNodeData {
-    provider?: 'openai' | 'openrouter';
+    provider?: 'openai' | 'openrouter' | 'eigencloud';
     model?: string;
     userPromptTemplate?: string;
     outputSchema?: Record<string, unknown>;
