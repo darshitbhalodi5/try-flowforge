@@ -56,7 +56,7 @@ export function WalletSetupProgressCard({
         <button
           type="button"
           onClick={onToggleExpanded}
-          className="shrink-0 w-8 h-8 rounded-md border border-border bg-secondary/20 hover:bg-secondary/40 transition-colors flex items-center justify-center text-muted-foreground hover:text-foreground"
+          className="shrink-0 w-8 h-8 rounded-md border border-white/20 bg-white/5 hover:bg-white/10 hover:border-amber-600/40 transition-all duration-200 flex items-center justify-center text-muted-foreground hover:text-foreground"
           aria-label={isSetupExpanded ? "Collapse setup progress" : "Expand setup progress"}
         >
           {isSetupExpanded ? (
@@ -68,7 +68,7 @@ export function WalletSetupProgressCard({
       </div>
 
       {!isSetupExpanded ? (
-        <div className="p-3 rounded-lg bg-secondary/20 border border-border">
+        <div className="p-3 rounded-lg bg-white/5 border border-white/15">
           <Typography variant="caption" className="text-muted-foreground">
             {chainsToSetup.length === 0
               ? "No networks selected yet."
@@ -76,7 +76,7 @@ export function WalletSetupProgressCard({
           </Typography>
         </div>
       ) : chainsToSetup.length === 0 ? (
-        <div className="p-4 rounded-lg bg-secondary/20 border border-border text-center">
+        <div className="p-4 rounded-lg bg-white/5 border border-white/15 text-center">
           <Typography variant="caption" className="text-muted-foreground">
             Save your network selection to initialize setup.
           </Typography>
@@ -97,12 +97,12 @@ export function WalletSetupProgressCard({
             return (
               <div
                 key={chain.id}
-                className={`rounded-lg border p-4 ${
+                className={`rounded-lg border p-4 transition-all duration-200 ${
                   isComplete
-                    ? "border-success/40 bg-success/5"
+                    ? "border-emerald-400/60 bg-emerald-500/10"
                     : hasError
-                      ? "border-destructive/40 bg-destructive/5"
-                      : "border-border bg-secondary/20"
+                      ? "border-destructive/50 bg-destructive/10"
+                      : "border-white/15 bg-white/5 hover:bg-white/10 hover:border-amber-500/40"
                 }`}
               >
                 <div className="flex items-start justify-between gap-3 mb-3">
@@ -119,7 +119,7 @@ export function WalletSetupProgressCard({
                     <Button
                       onClick={() => onRetryChain(chain.id)}
                       disabled={isOnboarding}
-                      className="h-8 px-3 text-xs bg-transparent hover:bg-white/5"
+                      className="h-8 px-3 text-xs bg-white/10 hover:bg-white/20 border border-destructive/40 text-destructive disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                       <LuRefreshCw className="w-3 h-3" />
                       Retry
@@ -155,7 +155,7 @@ export function WalletSetupProgressCard({
           })}
 
           {currentSigningChainName && (
-            <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+            <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/40">
               <Typography variant="caption" className="text-primary text-xs">
                 Signature required on {currentSigningChainName}. Check your wallet prompt.
               </Typography>
@@ -170,7 +170,7 @@ export function WalletSetupProgressCard({
               hasUnsavedChainSelection ||
               isSavingChains
             }
-            className="w-full h-10 text-sm mt-1 bg-transparent hover:bg-white/5"
+            className="w-full h-10 text-sm mt-1 bg-white/10 hover:bg-white/20 border border-white/20 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {allChainsReady
               ? "All selected networks are ready"

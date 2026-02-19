@@ -62,10 +62,10 @@ export function WorkflowRightSidebar() {
         nodeData: { ...data, id: selectedNode.id },
         handleDataChange: (updates: Record<string, unknown>) => {
           if (selectedNode?.id) {
-            handleNodeDataChange(selectedNode.id, {
-              ...data,
-              ...updates,
-            });
+            // Important: only pass the delta updates.
+            // Merging with a captured `data` snapshot can drop newer values when the
+            // sidebar re-renders/unmounts or multiple updates happen quickly.
+            handleNodeDataChange(selectedNode.id, updates);
           }
         },
         authenticated,
@@ -106,10 +106,8 @@ export function WorkflowRightSidebar() {
   // Batched data change handler
   const handleBatchDataChange = (updates: Record<string, unknown>) => {
     if (selectedNode?.id) {
-      handleNodeDataChange(selectedNode.id, {
-        ...nodeData,
-        ...updates,
-      });
+      // Same rationale as above: pass only deltas, let the context merge.
+      handleNodeDataChange(selectedNode.id, updates);
     }
   };
 

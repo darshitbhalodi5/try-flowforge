@@ -51,25 +51,31 @@ export function WalletNetworkSelectionCard({
                   type="button"
                   key={chain.id}
                   onClick={() => onToggleChain(chain.id)}
-                  className={`w-full flex items-center justify-between p-3 rounded-lg border text-left transition-colors ${
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg border text-left transition-all duration-200 ${
                     isSelected
-                      ? "border-primary/70 bg-primary/10"
-                      : "border-border bg-secondary/20 hover:bg-secondary/40"
+                      ? "border-amber-500/70 bg-amber-500/10 shadow-[0_0_0_1px_rgba(245,158,11,0.25)]"
+                      : "border-white/15 bg-white/5 hover:bg-white/10 hover:border-amber-500/40"
                   }`}
                 >
                   <div className="space-y-0.5">
-                    <Typography variant="bodySmall" className="text-foreground font-medium">
+                    <Typography
+                      variant="bodySmall"
+                      className="text-foreground font-medium"
+                    >
                       {chain.name}
                     </Typography>
-                    <Typography variant="caption" className="text-muted-foreground">
+                    <Typography
+                      variant="caption"
+                      className="text-muted-foreground"
+                    >
                       {chain.isTestnet ? "Testnet" : "Mainnet"}
                     </Typography>
                   </div>
                   <div
-                    className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                    className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors duration-200 ${
                       isSelected
-                        ? "border-primary bg-primary text-black"
-                        : "border-border text-transparent"
+                        ? "border-amber-300 bg-amber-300 text-black"
+                        : "border-white/25 text-transparent"
                     }`}
                   >
                     <LuCheck className="w-3.5 h-3.5" />
@@ -79,9 +85,10 @@ export function WalletNetworkSelectionCard({
             })}
           </div>
 
-          <div className="mt-4 flex items-center justify-between gap-3">
+          <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between gap-3">
             <Typography variant="caption" className="text-muted-foreground">
-              {selectedChainIds.size} network{selectedChainIds.size !== 1 ? "s" : ""} selected
+              {selectedChainIds.size} network
+              {selectedChainIds.size !== 1 ? "s" : ""} selected
             </Typography>
             <Button
               onClick={onSaveSelection}
@@ -90,15 +97,15 @@ export function WalletNetworkSelectionCard({
                 selectedChainIds.size === 0 ||
                 !hasUnsavedChainSelection
               }
-              className="h-9 px-4 text-xs bg-transparent hover:bg-white/5"
+              className="h-9 px-4 text-xs bg-white/10 hover:bg-white/20 border border-white/20 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isSavingChains ? "Saving..." : "Save Selection"}
             </Button>
           </div>
 
           {selectedChainIds.size === 0 && (
-            <div className="mt-3 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-              <Typography variant="caption" className="text-destructive text-xs">
+            <div className="mt-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/40">
+              <Typography variant="caption" className="text-amber-300 text-xs">
                 Select at least one network before saving.
               </Typography>
             </div>

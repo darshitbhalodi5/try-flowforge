@@ -57,7 +57,7 @@ export function WalletFundingCard({ selection }: WalletFundingCardProps) {
     return (
         <SimpleCard className="p-5">
             <div className="flex items-center space-x-2 mb-4">
-                <LuCreditCard className="w-5 h-5 text-primary" />
+                <LuCreditCard className="w-5 h-5 text-amber-400" />
                 <Typography variant="h5" className="font-semibold text-foreground">
                     Fund Safe Wallet
                 </Typography>
@@ -69,7 +69,7 @@ export function WalletFundingCard({ selection }: WalletFundingCardProps) {
 
             <div className="space-y-4">
                 {!safeAddress ? (
-                    <div className="p-3 rounded-lg bg-secondary/20 border border-border text-center">
+                    <div className="p-3 rounded-lg bg-white/5 border border-white/15 text-center">
                         <Typography variant="caption" className="text-muted-foreground">
                             Please select or create a Safe wallet first to enable funding.
                         </Typography>
@@ -80,9 +80,13 @@ export function WalletFundingCard({ selection }: WalletFundingCardProps) {
                             <Typography variant="caption" className="text-muted-foreground">
                                 Destination Safe
                             </Typography>
-                            <div className="p-2.5 rounded-lg bg-primary/10 border border-primary/30 flex items-center">
-                                <LuWallet className="w-3.5 h-3.5 mr-2 text-primary" />
-                                <Typography variant="caption" className="text-foreground font-mono truncate">
+                            <div className="p-2.5 rounded-lg bg-white/5 border border-white/15 flex items-start gap-2 min-w-0">
+                                <LuWallet className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-400" />
+                                <Typography
+                                    variant="caption"
+                                    className="text-foreground font-mono text-xs break-all"
+                                    title={safeAddress}
+                                >
                                     {safeAddress}
                                 </Typography>
                             </div>
@@ -96,24 +100,22 @@ export function WalletFundingCard({ selection }: WalletFundingCardProps) {
                                 type="number"
                                 value={amount}
                                 onChange={(e) => setAmount(e.target.value)}
-                                className="w-full bg-secondary/20 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                                className="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/40 transition-all duration-200"
                                 placeholder="Amount"
                             />
                         </div>
 
                         <div className="grid grid-cols-2 gap-2">
                             <Button
-                                border
                                 onClick={() => handleFund('native-currency')}
-                                className="h-10 px-4 text-xs"
+                                className="h-10 px-4 text-xs bg-white/10 hover:bg-white/20 border border-white/20 disabled:opacity-60 disabled:cursor-not-allowed"
                                 loading={isFunding}
                             >
                                 Buy ETH
                             </Button>
                             <Button
-                                border
                                 onClick={() => handleFund('USDC')}
-                                className="h-10 px-4 text-xs"
+                                className="h-10 px-4 text-xs bg-white/10 hover:bg-white/20 border border-white/20 disabled:opacity-60 disabled:cursor-not-allowed"
                                 loading={isFunding}
                             >
                                 Buy USDC
@@ -121,9 +123,8 @@ export function WalletFundingCard({ selection }: WalletFundingCardProps) {
                             {fundableTokens.filter(t => t.symbol !== "USDC").slice(0, 2).map(token => (
                                 <Button
                                     key={token.symbol}
-                                    border
                                     onClick={() => handleFund({ erc20: token.address })}
-                                    className="h-10 px-4 text-xs"
+                                    className="h-10 px-4 text-xs bg-white/10 hover:bg-white/20 border border-white/20 disabled:opacity-60 disabled:cursor-not-allowed"
                                     loading={isFunding}
                                 >
                                     Buy {token.symbol}

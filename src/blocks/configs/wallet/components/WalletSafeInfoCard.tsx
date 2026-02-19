@@ -44,8 +44,8 @@ export function WalletSafeInfoCard({
       )}
 
       {selection.error && (
-        <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-          <Typography variant="caption" className="text-destructive">
+        <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/50">
+          <Typography variant="caption" className="text-destructive text-xs">
             {selection.error}
           </Typography>
         </div>
@@ -68,7 +68,7 @@ export function WalletSafeInfoCard({
                 }))}
               />
               {selection.selectedSafe && (
-                <div className="p-3 rounded-lg bg-secondary/30 border border-border">
+                <div className="p-3 rounded-lg bg-white/5 border border-white/15">
                   <Typography variant="caption" className="text-muted-foreground text-xs mb-1">
                     Selected Safe
                   </Typography>
@@ -77,14 +77,14 @@ export function WalletSafeInfoCard({
                   </Typography>
                 </div>
               )}
-              <div className="pt-2 border-t border-border">
+              <div className="pt-3 border-t border-white/10">
                 <Typography variant="caption" className="text-muted-foreground text-xs">
                   {selection.safeWallets.length} Safe wallet{selection.safeWallets.length !== 1 ? "s" : ""} available
                 </Typography>
               </div>
             </>
           ) : (
-            <div className="p-4 rounded-lg bg-secondary/20 border border-border text-center">
+            <div className="p-4 rounded-lg bg-white/5 border border-white/15 text-center">
               <Typography variant="caption" className="text-muted-foreground">
                 No Safe wallets found. Use the toolbar to create a new Safe wallet.
               </Typography>
