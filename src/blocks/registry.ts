@@ -401,6 +401,7 @@ export function generateIconRegistry(): IconRegistry {
     GLMLogo: logos.GLMLogo,
     DeepSeekLogo: logos.DeepSeekLogo,
     ChatGPTLogo: logos.ChatGPTLogo,
+    EigenCloudLogo: logos.EigenCloudLogo,
     ApiLogo: logos.ApiLogo,
   };
 

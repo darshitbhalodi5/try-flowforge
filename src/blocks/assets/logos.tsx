@@ -39,6 +39,7 @@ import insurace from "@/assets/blocks/InsurAce.svg";
 import qwen from "@/assets/blocks/Qwen.svg";
 import glm from "@/assets/blocks/GLM.svg";
 import deepseek from "@/assets/blocks/Deepseek.svg";
+import eigencloud from "@/assets/blocks/EigenCloud.svg";
 import { TbApi } from "react-icons/tb";
 import chatgpt from "@/assets/blocks/ChatGPT.svg";
 
@@ -378,6 +379,16 @@ export const DeepSeekLogo = ({ className }: LogoProps) => (
   <Image
     src={deepseek}
     alt="DeepSeek"
+    className={className}
+    width={32}
+    height={32}
+  />
+);
+
+export const EigenCloudLogo = ({ className }: LogoProps) => (
+  <Image
+    src={eigencloud}
+    alt="EigenCloud"
     className={className}
     width={32}
     height={32}

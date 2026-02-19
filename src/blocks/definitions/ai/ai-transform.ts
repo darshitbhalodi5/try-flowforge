@@ -69,10 +69,28 @@ export const aiTransformChatGPT: BlockDefinition = createAiTransformBlock(
   "ChatGPTLogo"
 );
 
+export const aiTransformEigenGPT: BlockDefinition = createAiTransformBlock(
+  "ai-eigencloud-gpt-oss",
+  "EigenAI GPT-OSS",
+  "eigencloud",
+  "eigencloud:gpt-oss",
+  "EigenCloudLogo"
+);
+
+export const aiTransformEigenQwen: BlockDefinition = createAiTransformBlock(
+  "ai-eigencloud-qwen3",
+  "EigenAI Qwen3",
+  "eigencloud",
+  "eigencloud:qwen3",
+  "EigenCloudLogo"
+);
+
 // Export all AI blocks
 export const aiBlocks: BlockDefinition[] = [
   aiTransformQwen,
   aiTransformGLM,
   aiTransformDeepSeek,
   aiTransformChatGPT,
+  aiTransformEigenGPT,
+  aiTransformEigenQwen,
 ];
