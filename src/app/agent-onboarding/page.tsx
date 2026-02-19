@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import LogoOnlyHeader from "@/components/layout/LogoOnlyHeader";
 import AgentOnboardingPageClient from "@/components/onboarding/AgentOnboardingPageClient";
+import { WorkflowProvider } from "@/context/WorkflowContext";
 
 export const metadata: Metadata = {
   title: "Agent Onboarding - FlowForge",
@@ -13,7 +14,9 @@ export default function AgentOnboardingPage() {
     <div className="bg-background">
       <LogoOnlyHeader />
       <main className="w-[90%] mx-auto mt-40">
-        <AgentOnboardingPageClient />
+        <WorkflowProvider>
+          <AgentOnboardingPageClient />
+        </WorkflowProvider>
       </main>
     </div>
   );
