@@ -43,6 +43,13 @@ export const OSTIUM_ACTIONS: OstiumAction[] = [
   "UPDATE_TP",
 ];
 
+export const OSTIUM_PANEL_ACTIONS: OstiumAction[] = [
+  "MARKETS",
+  "PRICE",
+  "OPEN_POSITION",
+  "CLOSE_POSITION",
+];
+
 export function actionRequiresDelegation(action: OstiumAction): boolean {
   return (
     action === "OPEN_POSITION" ||
@@ -80,5 +87,35 @@ export interface OstiumReadiness {
   };
   readyForOpenPosition: boolean;
   readyForPositionManagement: boolean;
+  refreshedAt: string;
+}
+
+export interface OstiumDelegationStatus {
+  status: "PENDING" | "ACTIVE" | "REVOKED" | "FAILED";
+  safeAddress?: string;
+  approvalTxHash?: string | null;
+  revokeTxHash?: string | null;
+  safeTxHash?: string | null;
+  lastError?: string | null;
+  updatedAt?: string;
+}
+
+export interface OstiumSetupActionItem {
+  id:
+    | "SAFE_WALLET"
+    | "DELEGATION"
+    | "SAFE_USDC_BALANCE"
+    | "USDC_ALLOWANCE"
+    | "DELEGATE_GAS";
+  label: string;
+  done: boolean;
+  message: string;
+}
+
+export interface OstiumSetupOverview {
+  network: OstiumNetwork;
+  delegation: OstiumDelegationStatus | null;
+  readiness: OstiumReadiness;
+  actionItems: OstiumSetupActionItem[];
   refreshedAt: string;
 }
