@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Typography } from "@/components/ui/Typography";
 import { SimpleCard } from "@/components/ui/SimpleCard";
 import { Dropdown } from "@/components/ui/Dropdown";
@@ -50,10 +50,10 @@ interface MarketItem {
 
 interface DelegationStatus {
   status: "PENDING" | "ACTIVE" | "REVOKED" | "FAILED";
-  safeAddress: string;
-  approvalTxHash: string | null;
-  revokeTxHash: string | null;
-  safeTxHash: string | null;
+  safeAddress?: string;
+  approvalTxHash?: string | null;
+  revokeTxHash?: string | null;
+  safeTxHash?: string | null;
 }
 
 interface SafeTxData {
@@ -213,6 +213,12 @@ function OstiumNodeConfigurationInner({
 
   const [allowanceActionLoading, setAllowanceActionLoading] = useState<boolean>(false);
   const [allowanceActionMessage, setAllowanceActionMessage] = useState<string | null>(null);
+  const readinessInFlightRef = useRef(false);
+  const handleDataChangeRef = useRef(handleDataChange);
+
+  useEffect(() => {
+    handleDataChangeRef.current = handleDataChange;
+  }, [handleDataChange]);
 
   const callAuthedPost = useCallback(
     async <T,>(endpoint: string, payload: Record<string, unknown>): Promise<T> => {
@@ -420,7 +426,7 @@ function OstiumNodeConfigurationInner({
         successMessage: null,
       });
 
-      handleDataChange({
+      handleDataChangeRef.current({
         delegationStatus: delegation?.status || "UNKNOWN",
         delegationCheckedAt: new Date().toISOString(),
       });
@@ -432,17 +438,21 @@ function OstiumNodeConfigurationInner({
         status: null,
         successMessage: null,
       });
-      handleDataChange({
+      handleDataChangeRef.current({
         delegationStatus: "UNKNOWN",
         delegationCheckedAt: new Date().toISOString(),
       });
     }
-  }, [authenticated, callAuthedPost, handleDataChange, network]);
+  }, [authenticated, callAuthedPost, network]);
 
   const refreshReadiness = useCallback(async () => {
     if (!authenticated) {
       return;
     }
+    if (readinessInFlightRef.current) {
+      return;
+    }
+    readinessInFlightRef.current = true;
 
     setReadinessState((prev) => ({
       ...prev,
@@ -460,12 +470,23 @@ function OstiumNodeConfigurationInner({
         error: null,
         data,
       });
+
+      handleDataChangeRef.current({
+        delegationStatus: data.checks.delegation.status || "UNKNOWN",
+        delegationCheckedAt: new Date().toISOString(),
+      });
     } catch (error) {
       setReadinessState({
         loading: false,
         error: error instanceof Error ? error.message : "Failed to fetch readiness status",
         data: null,
       });
+      handleDataChangeRef.current({
+        delegationStatus: "UNKNOWN",
+        delegationCheckedAt: new Date().toISOString(),
+      });
+    } finally {
+      readinessInFlightRef.current = false;
     }
   }, [authenticated, callAuthedPost, network]);
 
@@ -671,9 +692,10 @@ function OstiumNodeConfigurationInner({
 
   useEffect(() => {
     if (!authenticated) return;
-    refreshDelegationStatus();
     refreshReadiness();
-  }, [authenticated, network, refreshDelegationStatus, refreshReadiness]);
+    // avoid callback identity churn causing request loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authenticated, network, selectedSafe]);
 
   const delegationVisual = getDelegationStatusVisual(
     delegationState.status?.status || delegationStatusFromNode || null,
