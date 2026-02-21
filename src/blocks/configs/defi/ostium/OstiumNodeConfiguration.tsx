@@ -281,13 +281,16 @@ function OstiumNodeConfigurationInner({
     setPositionsState((prev) => ({ ...prev, loading: true, error: null }));
 
     try {
+      const traderAddress = overviewState.data?.readiness.safeAddress;
+      if (!traderAddress) return;
+
       const data = await postOstiumAuthed<{ positions: unknown[] }>(
         getPrivyAccessToken,
         API_CONFIG.ENDPOINTS.OSTIUM.POSITIONS,
-        { network },
+        { network, traderAddress },
         {
           dedupeInFlight: true,
-          dedupeKey: `ostium:positions:${network}`,
+          dedupeKey: `ostium:positions:${network}:${traderAddress}`,
           cacheMs: FEATURE_FLAGS.OSTIUM_SETUP_FETCH_COOLDOWN_MS,
         },
       );
@@ -306,7 +309,12 @@ function OstiumNodeConfigurationInner({
     } finally {
       positionsInFlightRef.current = false;
     }
-  }, [authenticated, getPrivyAccessToken, network]);
+  }, [
+    authenticated,
+    getPrivyAccessToken,
+    network,
+    overviewState.data?.readiness.safeAddress,
+  ]);
 
   useEffect(() => {
     const updates: Record<string, unknown> = {};
