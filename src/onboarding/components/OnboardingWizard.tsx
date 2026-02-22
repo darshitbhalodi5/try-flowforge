@@ -58,6 +58,7 @@ export const OnboardingWizard: React.FC = () => {
         isMinimized,
         toggleMinimize,
         dismissOnboarding,
+        goToStep,
     } = useOnboarding();
     const { authenticated } = usePrivy();
 
@@ -241,6 +242,10 @@ export const OnboardingWizard: React.FC = () => {
                             <WizardStepper
                                 steps={steps}
                                 currentStepIndex={stepIndex}
+                                onStepClick={(idx) => {
+                                    const stepId = steps[idx]?.id;
+                                    if (stepId) goToStep(stepId);
+                                }}
                             />
                         </div>
 
