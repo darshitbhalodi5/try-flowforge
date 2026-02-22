@@ -8,6 +8,7 @@ import {
     LuLoader,
     LuX,
 } from "react-icons/lu";
+import { Button } from "@/components/ui/Button";
 import { Typography } from "@/components/ui/Typography";
 import type { OstiumSetupOverview } from "@/types/ostium";
 
@@ -16,13 +17,13 @@ function getCheckVisual(ok: boolean): { className: string; label: string; icon: 
         return {
             className: "text-zinc-300",
             label: "Ready",
-            icon: <LuCircleCheck className="w-4 h-4 text-green-400" />,
+            icon: <LuCircleCheck className="w-4 h-4 text-emerald-400" />,
         };
     }
     return {
         className: "text-zinc-400",
         label: "Action Required",
-        icon: <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />,
+        icon: <div className="h-2.5 w-2.5 rounded-full bg-orange-500 animate-pulse" />,
     };
 }
 
@@ -98,74 +99,77 @@ export function OstiumSetupModal({
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-all"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md transition-all"
             role="dialog"
             aria-modal="true"
         >
+            {/* Backdrop click to close */}
             <div
                 className="fixed inset-0"
                 onClick={() => onOpenChange(false)}
                 aria-hidden="true"
             />
 
+            {/* ── Modal Card ── */}
             <div
-                className="relative z-50 w-full max-w-lg mt-10 overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0a] shadow-2xl animate-in zoom-in-95 duration-200"
+                className="relative z-50 w-full max-w-lg mx-4 overflow-hidden rounded-2xl border border-white/8 bg-[#0a0a0e] shadow-2xl shadow-orange-500/6 animate-in zoom-in-95 duration-200"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Header Ribbon */}
-                <div className="flex items-center justify-between border-b border-white-[0.05] px-6 py-5">
-                    <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 border border-white/5">
-                            <LuShield className="h-5 w-5 text-zinc-300" />
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 py-5">
+                    <div className="flex items-center gap-3.5">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-orange-500/20 to-amber-600/20 border border-orange-500/10">
+                            <LuShield className="h-5 w-5 text-orange-400" />
                         </div>
                         <div>
-                            <Typography variant="body" className="font-medium text-zinc-100">
+                            <Typography variant="body" className="font-semibold text-white">
                                 Trading Account Setup
                             </Typography>
                             <Typography variant="caption" className="text-zinc-500">
-                                Initialize requirements ({readinessDoneCount}/{readinessTotalCount} complete)
+                                {readinessDoneCount}/{readinessTotalCount} requirements complete
                             </Typography>
                         </div>
                     </div>
                     <button
                         onClick={() => onOpenChange(false)}
-                        className="rounded-full p-2 text-zinc-500 transition-colors hover:bg-white/5 hover:text-zinc-200"
+                        className="cursor-pointer flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-white/6 hover:text-zinc-300"
                     >
-                        <LuX className="h-5 w-5" />
+                        <LuX className="h-4 w-4" />
                     </button>
                 </div>
 
-                {/* Progress Bar (Minimal) */}
-                <div className="h-[2px] w-full bg-zinc-900 border-b border-white/5">
+                {/* Progress Bar */}
+                <div className="h-[2px] w-full bg-white/4">
                     <div
-                        className="h-full bg-zinc-100 transition-all duration-500 ease-out"
+                        className="h-full bg-linear-to-r from-orange-500 to-amber-500 transition-all duration-700 ease-out"
                         style={{ width: `${readinessProgressPercent}%` }}
                     />
                 </div>
 
-                {/* Requirements List Sequence */}
-                <div className="p-6 space-y-6">
+                {/* ── Requirements Steps ── */}
+                <div className="p-6 space-y-0">
 
                     {/* Step 1: Delegation */}
                     <div className="flex gap-4 items-start">
-                        <div className="mt-1 flex-shrink-0">
+                        <div className="mt-1 shrink-0">
                             {getCheckVisual(filteredSteps.find((s) => s.id === "DELEGATION")?.done || false).icon}
                         </div>
                         <div className="flex-1 space-y-2">
-                            <div className="flex items-center justify-between">
+                            <div>
                                 <Typography variant="bodySmall" className="font-medium text-zinc-200">
                                     Transaction Delegation
                                 </Typography>
+                                <Typography variant="caption" className="block mt-1 text-zinc-500 leading-relaxed">
+                                    Permits the backend relayer to execute actions on behalf of your Safe wallet securely.
+                                </Typography>
                             </div>
-                            <Typography variant="caption" className="block text-zinc-500 leading-relaxed pr-4">
-                                Permits the backend relayer to execute actions on behalf of your Safe wallet securely.
-                            </Typography>
 
-                            <div className="pt-2">
+                            <div className="pt-1">
                                 {delegationStatus === "ACTIVE" ? (
-                                    <button
-                                        type="button"
-                                        className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-zinc-800 bg-transparent px-4 text-xs font-medium text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-red-400 disabled:opacity-50"
+                                    <Button
+                                        border
+                                        borderColor="rgba(161,161,170,0.5)"
+                                        className="h-8 rounded-lg px-3.5 text-xs"
                                         onClick={() => void runDelegationFlow("revoke")}
                                         disabled={delegationActionLoading !== null || !ethereumProvider}
                                     >
@@ -175,11 +179,11 @@ export function OstiumSetupModal({
                                             <LuShieldAlert className="h-3.5 w-3.5" />
                                         )}
                                         Revoke Delegation
-                                    </button>
+                                    </Button>
                                 ) : (
                                     <button
                                         type="button"
-                                        className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-zinc-100 px-5 text-xs font-semibold text-zinc-900 transition-all hover:bg-white disabled:opacity-50"
+                                        className="cursor-pointer inline-flex h-8 items-center justify-center gap-2 rounded-lg bg-white px-5 text-xs font-semibold text-zinc-900 transition-all hover:bg-zinc-100 disabled:opacity-50"
                                         onClick={() => void runDelegationFlow("approve")}
                                         disabled={delegationActionLoading !== null || !ethereumProvider}
                                     >
@@ -193,11 +197,11 @@ export function OstiumSetupModal({
                         </div>
                     </div>
 
-                    <div className="h-px w-full bg-zinc-900/80" />
+                    <div className="h-px w-full bg-white/4" />
 
-                    {/* Step 2: Amount (Info Only) */}
-                    <div className="flex gap-4 items-start">
-                        <div className="mt-1 flex-shrink-0">
+                    {/* Step 2: USDC Balance (Info Only) */}
+                    <div className="flex gap-4 items-start py-5">
+                        <div className="mt-0.5 shrink-0">
                             {getCheckVisual(filteredSteps.find((s) => s.id === "SAFE_USDC_BALANCE")?.done || false).icon}
                         </div>
                         <div className="flex-1 space-y-1.5">
@@ -210,25 +214,30 @@ export function OstiumSetupModal({
                         </div>
                     </div>
 
-                    <div className="h-px w-full bg-zinc-900/80" />
+                    <div className="h-px w-full bg-white/4" />
 
                     {/* Step 3: Allowance */}
-                    <div className="flex gap-4 items-start">
-                        <div className="mt-1 flex-shrink-0">
+                    <div className="flex gap-4 items-start py-5 last:pb-0">
+                        <div className="mt-0.5 shrink-0">
                             {getCheckVisual(filteredSteps.find((s) => s.id === "USDC_ALLOWANCE")?.done || false).icon}
                         </div>
                         <div className="flex-1 space-y-2">
-                            <Typography variant="bodySmall" className="font-medium text-zinc-200">
-                                USDC Spending Allowance
-                            </Typography>
-                            <Typography variant="caption" className="block text-zinc-500 leading-relaxed">
-                                Permit the Ostium trading storage contract to withdraw USDC from your Safe balance.
-                            </Typography>
+                            <div>
+                                <Typography variant="bodySmall" className="font-medium text-zinc-200">
+                                    USDC Spending Allowance
+                                </Typography>
+                                <Typography variant="caption" className="block mt-1 text-zinc-500 leading-relaxed">
+                                    Permit the Ostium trading storage contract to withdraw USDC from your Safe balance.
+                                </Typography>
+                            </div>
 
-                            <div className="pt-2">
+                            <div className="pt-1">
                                 <button
                                     type="button"
-                                    className={`inline-flex h-9 items-center justify-center gap-2 rounded-lg px-5 text-xs font-semibold transition-all disabled:opacity-50 ${needsAllowance ? "bg-zinc-100 text-zinc-900 hover:bg-white" : "border border-zinc-800 bg-transparent text-zinc-500 cursor-default"}`}
+                                    className={`inline-flex h-8 items-center justify-center gap-2 rounded-lg px-5 text-xs font-semibold transition-all disabled:opacity-50 ${needsAllowance
+                                        ? "cursor-pointer bg-white text-zinc-900 hover:bg-zinc-100"
+                                        : "border border-white/6 bg-transparent text-zinc-600 cursor-default"
+                                        }`}
                                     onClick={() => void runAllowanceFlow()}
                                     disabled={allowanceActionLoading || !ethereumProvider || !needsAllowance}
                                 >

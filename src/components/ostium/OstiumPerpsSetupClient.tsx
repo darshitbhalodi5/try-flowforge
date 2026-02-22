@@ -716,33 +716,31 @@ export default function OstiumPerpsSetupClient() {
         )}
 
         {authenticated && (
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-            <div className="space-y-4 xl:col-span-2">
-              <OstiumTradeLauncher
-                canOpenPosition={canOpenPosition}
-                marketOptions={marketOptions}
-                openPositionForm={openPositionForm}
-                setOpenPositionForm={setOpenPositionForm}
-                runOpenPosition={runOpenPosition}
-                canSubmitOpenPosition={canSubmitOpenPosition}
-                openPositionLoading={openPositionLoading}
-                setIsSetupOpen={setIsSetupOpen}
-              />
+          <div className="space-y-4">
+            <OstiumTradeLauncher
+              canOpenPosition={canOpenPosition}
+              marketOptions={marketOptions}
+              openPositionForm={openPositionForm}
+              setOpenPositionForm={setOpenPositionForm}
+              runOpenPosition={runOpenPosition}
+              canSubmitOpenPosition={canSubmitOpenPosition}
+              openPositionLoading={openPositionLoading}
+              setIsSetupOpen={setIsSetupOpen}
+            />
 
-              <OstiumPositionsList
-                parsedPositions={parsedPositions}
-                positionsLoading={positionsState.loading}
-                safeAddress={safeAddress ?? ""}
-                derivedNetwork={derivedNetwork}
-                positionDrafts={positionDrafts}
-                setPositionDrafts={setPositionDrafts}
-                canManagePositions={canManagePositions}
-                rowActionLoading={rowActionLoading}
-                refreshPositions={refreshPositions}
-                runClosePosition={runClosePosition}
-                runUpdatePriceGuard={runUpdatePriceGuard}
-              />
-            </div>
+            <OstiumPositionsList
+              parsedPositions={parsedPositions}
+              positionsLoading={positionsState.loading}
+              safeAddress={safeAddress ?? ""}
+              derivedNetwork={derivedNetwork}
+              positionDrafts={positionDrafts}
+              setPositionDrafts={setPositionDrafts}
+              canManagePositions={canManagePositions}
+              rowActionLoading={rowActionLoading}
+              refreshPositions={refreshPositions}
+              runClosePosition={runClosePosition}
+              runUpdatePriceGuard={runUpdatePriceGuard}
+            />
           </div>
         )}
 
