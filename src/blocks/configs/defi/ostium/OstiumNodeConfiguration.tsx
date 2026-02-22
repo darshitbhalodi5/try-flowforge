@@ -620,6 +620,38 @@ function OstiumNodeConfigurationInner({
                 </span>
               </div>
             </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Typography variant="caption" className="text-muted-foreground font-medium">
+                  Stop-Loss (Optional)
+                </Typography>
+                <div className="relative">
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-medium">$</span>
+                  <Input
+                    value={normalizedSlPrice}
+                    onChange={(e) => handleDataChange({ slPrice: e.target.value })}
+                    placeholder="Price trigger"
+                    className="pl-6"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Typography variant="caption" className="text-muted-foreground font-medium">
+                  Take-Profit (Optional)
+                </Typography>
+                <div className="relative">
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-medium">$</span>
+                  <Input
+                    value={normalizedTpPrice}
+                    onChange={(e) => handleDataChange({ tpPrice: e.target.value })}
+                    placeholder="Price target"
+                    className="pl-6"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
