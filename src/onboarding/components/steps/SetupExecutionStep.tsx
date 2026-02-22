@@ -1,16 +1,19 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
     useOnboarding,
     OnboardingStepStatus,
     ChainProgress,
     ChainConfig,
 } from "@/onboarding/context/OnboardingContext";
+import { useWallets, useLinkAccount, useCreateWallet } from "@privy-io/react-auth";
 import { TbFidgetSpinner } from "react-icons/tb";
 import {
     FaCheckCircle,
     FaTimesCircle,
     FaSync,
     FaPen,
+    FaWallet,
+    FaPlus,
 } from "react-icons/fa";
 import { Button } from "@/components/ui/Button";
 import { StepHelpSection } from "../StepHelpSection";
@@ -268,8 +271,44 @@ export const SetupExecutionStep = () => {
         startOnboarding,
         retryChain,
         dismissOnboarding,
-        completeStep
+        completeStep,
+        goToStep,
     } = useOnboarding();
+
+    const { wallets = [], ready: walletsReady } = useWallets();
+    const [connectError, setConnectError] = useState<string | null>(null);
+    const [createError, setCreateError] = useState<string | null>(null);
+    const [isCreating, setIsCreating] = useState(false);
+
+    const linkedWallets = wallets.filter((w) => w.linked || w.walletClientType === "privy");
+    const hasLinkedWallet = linkedWallets.length > 0;
+
+    const { linkWallet } = useLinkAccount({
+        onSuccess: () => setConnectError(null),
+        onError: (error) => setConnectError(typeof error === "string" ? error : String(error)),
+    });
+    const { createWallet } = useCreateWallet();
+
+    const handleConnectExternal = () => {
+        setConnectError(null);
+        linkWallet();
+    };
+
+    const handleCreateEmbedded = async () => {
+        setCreateError(null);
+        const hasEmbedded = wallets.some((w) => w.walletClientType === "privy");
+        if (!hasEmbedded) {
+            setIsCreating(true);
+            try {
+                await createWallet();
+                await new Promise((r) => setTimeout(r, 1500));
+            } catch (err) {
+                const msg = err instanceof Error ? err.message : String(err);
+                if (!msg.toLowerCase().includes("already")) setCreateError(msg);
+            }
+            setIsCreating(false);
+        }
+    };
 
     const hasAutoStartedRef = useRef(false);
 
@@ -323,6 +362,52 @@ export const SetupExecutionStep = () => {
                     Creating secure Safe wallets and enabling automation modules across your selected networks for seamless workflow execution.
                 </p>
             </div>
+
+            {!hasLinkedWallet && chainsToSetup.length > 0 && (
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-6 p-5 rounded-2xl border-2 border-amber-500/40 bg-amber-500/10"
+                >
+                    <p className="text-sm font-medium text-foreground mb-1">
+                        Wallet required to continue
+                    </p>
+                    <p className="text-xs text-muted-foreground mb-4">
+                        Connect an external wallet or create an embedded wallet to set up your Safe on the selected networks.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <Button
+                            onClick={handleConnectExternal}
+                            disabled={!walletsReady}
+                            className="flex-1 gap-2"
+                        >
+                            <FaWallet className="w-4 h-4" />
+                            {walletsReady ? "Connect external wallet" : "Loading…"}
+                        </Button>
+                        <Button
+                            onClick={handleCreateEmbedded}
+                            disabled={!walletsReady || isCreating}
+                            className="flex-1 gap-2 bg-transparent hover:bg-white/5"
+                        >
+                            <FaPlus className="w-4 h-4" />
+                            {isCreating ? "Creating…" : "Create embedded wallet"}
+                        </Button>
+                    </div>
+                    {connectError && (
+                        <p className="text-xs text-destructive mt-2">{connectError}</p>
+                    )}
+                    {createError && (
+                        <p className="text-xs text-destructive mt-2">{createError}</p>
+                    )}
+                    <button
+                        type="button"
+                        onClick={() => goToStep("wallet")}
+                        className="mt-3 text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
+                    >
+                        Or go back to wallet step
+                    </button>
+                </motion.div>
+            )}
 
             <motion.div
                 layout

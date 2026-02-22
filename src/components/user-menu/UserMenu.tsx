@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { usePrivy } from '@privy-io/react-auth';
+import { usePrivy, useLinkAccount, useCreateWallet, useWallets } from '@privy-io/react-auth';
 import { usePrivyWallet } from '@/hooks/usePrivyWallet';
 import { useEnsSubdomain } from '@/hooks/useEnsSubdomain';
 import { getAllChains, ChainInfo, getChain } from '@/web3/config/chain-registry';
@@ -20,6 +20,7 @@ import { TbLayoutGrid, TbWorld } from 'react-icons/tb';
 import { FaEye } from "react-icons/fa6";
 // import { TfiCreditCard } from 'react-icons/tfi';
 import { BiLink } from "react-icons/bi";
+import { FaWallet, FaPlus } from "react-icons/fa";
 import { Button } from '../ui/Button';
 import { API_CONFIG, buildApiUrl } from '@/config/api';
 
@@ -34,6 +35,13 @@ interface UserProfile {
 export function UserMenu() {
   const { user, logout } = usePrivy();
   const { wallet: embeddedWallet, chainId, walletAddress, getPrivyAccessToken } = usePrivyWallet();
+  const { wallets = [], ready: walletsReady } = useWallets();
+  const { linkWallet } = useLinkAccount({ onSuccess: () => setIsOpen(false) });
+  const { createWallet } = useCreateWallet();
+
+  const hasLinkedWallet = (wallets as { linked?: boolean; walletClientType?: string }[]).filter(
+    (w) => w.linked || w.walletClientType === 'privy'
+  ).length > 0;
   const { subdomains, listSubdomains, loading: ensLoading } = useEnsSubdomain();
   const [isOpen, setIsOpen] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -144,6 +152,35 @@ export function UserMenu() {
                 <div className="w-full items-center justify-between px-3 py-2 bg-white/10 rounded-lg text-sm text-white/70 truncate">
                   {email}
                 </div>
+                {/* Connect wallet when none linked */}
+                {!hasLinkedWallet && (
+                  <div className="w-full space-y-2 pt-1">
+                    <p className="text-xs text-amber-400/90">No wallet linked. Connect one to use Safe and workflows.</p>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => { linkWallet(); setIsOpen(false); }}
+                        disabled={!walletsReady}
+                        className="flex-1 gap-2 text-sm"
+                      >
+                        <FaWallet className="w-3.5 h-3.5" />
+                        Connect wallet
+                      </Button>
+                      <Button
+                        onClick={async () => {
+                          try {
+                            await createWallet();
+                            setIsOpen(false);
+                          } catch { /* no-op */ }
+                        }}
+                        disabled={!walletsReady}
+                        className="flex-1 gap-2 text-sm bg-transparent hover:bg-white/5"
+                      >
+                        <FaPlus className="w-3.5 h-3.5" />
+                        Create wallet
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Sponsored txs (mainnet) */}
